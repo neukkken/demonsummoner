@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/channel_ui.gd" id="1_xsdyk"]
+
+[node name="ChannelUI" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_xsdyk")

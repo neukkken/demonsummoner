@@ -1,0 +1,112 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/spell_projectile.gd" id="1_lqgqs"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_5mt4g"]
+radius = 0.15
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6hw7l"]
+albedo_color = Color(1, 0.3, 0.1, 1)
+emission_enabled = true
+emission = Color(1, 0.3, 0.1, 1)
+metallic = 0.5
+roughness = 0.2
+shading_mode = 2
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_f1r3t"]
+direction = Vector3(0, 1, 0)
+spread = 80.0
+gravity = Vector3(0, 0.5, 0)
+initial_velocity_min = 0.3
+initial_velocity_max = 1.5
+scale_min = 0.08
+scale_max = 0.2
+color = Color(1, 0.55, 0.05, 0.9)
+lifetime_randomness = 0.4
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_f1re_2"]
+direction = Vector3(0, 1, 0)
+spread = 40.0
+gravity = Vector3(0, 0.8, 0)
+initial_velocity_min = 0.1
+initial_velocity_max = 0.4
+scale_min = 0.04
+scale_max = 0.08
+color = Color(1, 0.8, 0.15, 0.6)
+lifetime_randomness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="Material_ptcl"]
+albedo_color = Color(1, 1, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_f1rtl"]
+size = Vector3(0.12, 0.12, 0.12)
+material = SubResource("Material_ptcl")
+
+[sub_resource type="BoxMesh" id="BoxMesh_f1spk"]
+size = Vector3(0.04, 0.04, 0.04)
+material = SubResource("Material_ptcl")
+
+[sub_resource type="BoxMesh" id="BoxMesh_core"]
+size = Vector3(0.06, 0.06, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="Material_core"]
+albedo_color = Color(1, 0.85, 0.4, 1)
+emission_enabled = true
+emission = Color(1, 0.9, 0.3, 1)
+shading_mode = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_flame"]
+top_radius = 0.0
+bottom_radius = 0.07
+height = 0.18
+radial_segments = 4
+rings = 1
+
+[node name="SpellProjectile" type="Area3D"]
+collision_mask = 1
+script = ExtResource("1_lqgqs")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_5mt4g")
+
+[node name="Flames" type="Node3D" parent="."]
+
+[node name="Core" type="MeshInstance3D" parent="Flames"]
+mesh = SubResource("BoxMesh_core")
+material_override = SubResource("Material_core")
+
+[node name="FlameUp" type="MeshInstance3D" parent="Flames"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09, 0)
+mesh = SubResource("CylinderMesh_flame")
+material_override = SubResource("StandardMaterial3D_6hw7l")
+
+[node name="FlameDown" type="MeshInstance3D" parent="Flames"]
+transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 0, -0.09, 0)
+mesh = SubResource("CylinderMesh_flame")
+material_override = SubResource("StandardMaterial3D_6hw7l")
+
+[node name="FlameLeft" type="MeshInstance3D" parent="Flames"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, -0.09, 0, 0)
+mesh = SubResource("CylinderMesh_flame")
+material_override = SubResource("StandardMaterial3D_6hw7l")
+
+[node name="FlameRight" type="MeshInstance3D" parent="Flames"]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0.09, 0, 0)
+mesh = SubResource("CylinderMesh_flame")
+material_override = SubResource("StandardMaterial3D_6hw7l")
+
+[node name="FlameForward" type="MeshInstance3D" parent="Flames"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, -0.09)
+mesh = SubResource("CylinderMesh_flame")
+material_override = SubResource("StandardMaterial3D_6hw7l")
+
+[node name="FlameBack" type="MeshInstance3D" parent="Flames"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.09)
+mesh = SubResource("CylinderMesh_flame")
+material_override = SubResource("StandardMaterial3D_6hw7l")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+light_color = Color(1, 0.4, 0.05, 1)
+light_energy = 2.0
+omni_range = 5.0
+shadow_enabled = false

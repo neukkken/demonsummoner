@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+texture_filter = 1
+roughness = 0.7
+metallic = 0.0
+metallic_specular = 0.0
+albedo_texture = Resource("res://textures/Snow/Snow.png")
+normal_texture = Resource("res://textures/Snow/Snow_Normal.jpg")
+ao_texture = Resource("res://textures/Snow/Snow_Occlusion.jpg")
+ao_enabled = true

@@ -1,0 +1,15 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Texture2D" path="res://textures/Grass/Grass.png" id="1"]
+[ext_resource type="Texture2D" path="res://textures/Grass/Grass_Normal.jpg" id="2"]
+[ext_resource type="Texture2D" path="res://textures/Grass/Grass_Occlusion.jpg" id="3"]
+[ext_resource type="Shader" path="res://shaders/detail_grass.gdshader" id="4"]
+
+[resource]
+shader = ExtResource("4")
+shader_parameter/albedo_tex = ExtResource("1")
+shader_parameter/normal_tex = ExtResource("2")
+shader_parameter/ao_tex = ExtResource("3")
+shader_parameter/detail_scale = 4.0
+shader_parameter/dirt_strength = 0.35
+shader_parameter/pebble_strength = 0.2

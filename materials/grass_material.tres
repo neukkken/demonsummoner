@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bluy3hxsbudoh"]
+
+[ext_resource type="Texture2D" uid="uid://dlw7q6vgkqibn" path="res://textures/Grass/Grass.png" id="1_x767v"]
+[ext_resource type="Texture2D" uid="uid://dqwdkgw15ltb6" path="res://textures/Grass/Grass_Occlusion.jpg" id="2_vyi4x"]
+[ext_resource type="Texture2D" uid="uid://b2pldsm8r77l" path="res://textures/Grass/Grass_Normal.jpg" id="3_ci5u6"]
+
+[resource]
+albedo_texture = ExtResource("1_x767v")
+metallic_specular = 0.0
+roughness = 0.9
+normal_texture = ExtResource("3_ci5u6")
+ao_enabled = true
+ao_texture = ExtResource("2_vyi4x")
+texture_filter = 1

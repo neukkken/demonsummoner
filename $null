@@ -1,0 +1,15 @@
+En l¡nea: 1 Car cter: 55
++ Get-Process | Where-Object { $_.Modules.FileName -like  *terrain* } | ...
++                                                       ~
+Debe proporcionar una expresi¢n de valor despu‚s del operador '-like'.
+En l¡nea: 1 Car cter: 58
++ Get-Process | Where-Object { $_.Modules.FileName -like  *terrain* } | ...
++                                                          ~
+Debe proporcionar una expresi¢n de valor despu‚s del operador '*'.
+En l¡nea: 1 Car cter: 58
++ ... Process | Where-Object { $_.Modules.FileName -like  *terrain* } | Sel ...
++                                                          ~~~~~~~~
+Token 'terrain*' inesperado en la expresi¢n o la instrucci¢n.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ExpectedValueExpression
+ 

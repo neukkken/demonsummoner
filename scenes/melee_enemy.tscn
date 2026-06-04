@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/melee_enemy.gd" id="1_vrdjf"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wl7wn"]
+radius = 0.5
+height = 2.0
+
+[node name="MeleeEnemy" type="CharacterBody3D"]
+collision_layer = 1
+script = ExtResource("1_vrdjf")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_wl7wn")

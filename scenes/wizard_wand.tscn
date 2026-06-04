@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/wizard_wand.gd" id="1_yl3ud"]
+
+[node name="WizardWand" type="Node3D"]
+script = ExtResource("1_yl3ud")

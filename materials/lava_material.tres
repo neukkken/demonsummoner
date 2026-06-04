@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+texture_filter = 1
+roughness = 0.4
+metallic = 0.2
+metallic_specular = 0.0
+flags_transparent = true
+albedo_texture = Resource("res://textures/Lava/Lava.png")
+normal_texture = Resource("res://textures/Lava/Lava_Normal.jpg")
+emission_enabled = true
+emission = Color(1, 0.3, 0.05, 1)
+emission_energy_multiplier = 3.0
+emission_texture = Resource("res://textures/Lava/Lava.png")

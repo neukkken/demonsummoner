@@ -1,0 +1,107 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/spell_projectile.gd" id="1_lqgqs"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_5mt4g"]
+radius = 0.15
+
+[sub_resource type="SphereMesh" id="SphereMesh_0uq0m"]
+radius = 0.12
+height = 0.24
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6hw7l"]
+albedo_color = Color(0.3, 0.6, 1, 1)
+emission_enabled = true
+emission = Color(0.3, 0.6, 1, 1)
+metallic = 0.5
+roughness = 0.2
+shading_mode = 2
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_1c3tr"]
+direction = Vector3(0, 1, 0)
+spread = 35.0
+gravity = Vector3(0, 0.15, 0)
+initial_velocity_min = 0.2
+initial_velocity_max = 0.8
+scale_min = 0.06
+scale_max = 0.14
+color = Color(0.55, 0.78, 1, 0.75)
+lifetime_randomness = 0.3
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_1c3dust"]
+direction = Vector3(0, 1, 0)
+spread = 60.0
+gravity = Vector3(0, -0.1, 0)
+initial_velocity_min = 0.05
+initial_velocity_max = 0.3
+scale_min = 0.02
+scale_max = 0.05
+color = Color(0.85, 0.92, 1, 0.45)
+lifetime_randomness = 0.5
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_shard"]
+top_radius = 0.0
+bottom_radius = 0.06
+height = 0.15
+radial_segments = 4
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="Material_ptcl"]
+albedo_color = Color(1, 1, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1cttl"]
+size = Vector3(0.1, 0.1, 0.1)
+material = SubResource("Material_ptcl")
+
+[sub_resource type="BoxMesh" id="BoxMesh_1cdst"]
+size = Vector3(0.03, 0.03, 0.03)
+material = SubResource("Material_ptcl")
+
+[node name="IceProjectile" type="Area3D"]
+collision_mask = 1
+script = ExtResource("1_lqgqs")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_5mt4g")
+
+[node name="Crystals" type="Node3D" parent="."]
+
+[node name="Core" type="MeshInstance3D" parent="Crystals"]
+mesh = SubResource("SphereMesh_0uq0m")
+material_override = SubResource("StandardMaterial3D_6hw7l")
+
+[node name="ShardUp" type="MeshInstance3D" parent="Crystals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075, 0)
+mesh = SubResource("CylinderMesh_shard")
+material_override = SubResource("StandardMaterial3D_6hw7l")
+
+[node name="ShardDown" type="MeshInstance3D" parent="Crystals"]
+transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 0, -0.075, 0)
+mesh = SubResource("CylinderMesh_shard")
+material_override = SubResource("StandardMaterial3D_6hw7l")
+
+[node name="ShardLeft" type="MeshInstance3D" parent="Crystals"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, -0.075, 0, 0)
+mesh = SubResource("CylinderMesh_shard")
+material_override = SubResource("StandardMaterial3D_6hw7l")
+
+[node name="ShardRight" type="MeshInstance3D" parent="Crystals"]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0.075, 0, 0)
+mesh = SubResource("CylinderMesh_shard")
+material_override = SubResource("StandardMaterial3D_6hw7l")
+
+[node name="ShardForward" type="MeshInstance3D" parent="Crystals"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, -0.075)
+mesh = SubResource("CylinderMesh_shard")
+material_override = SubResource("StandardMaterial3D_6hw7l")
+
+[node name="ShardBack" type="MeshInstance3D" parent="Crystals"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.075)
+mesh = SubResource("CylinderMesh_shard")
+material_override = SubResource("StandardMaterial3D_6hw7l")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+light_color = Color(0.3, 0.6, 1, 1)
+light_energy = 1.5
+omni_range = 4.0
+shadow_enabled = false

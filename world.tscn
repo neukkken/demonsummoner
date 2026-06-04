@@ -1,0 +1,236 @@
+[gd_scene format=3 uid="uid://bb8pvpsrnxxfg"]
+
+[ext_resource type="Script" uid="uid://iq2umwn6s6h5" path="res://scripts/player.gd" id="1_f3sb7"]
+[ext_resource type="Script" uid="uid://ccbaacvdydpec" path="res://scripts/gesture_recognizer.gd" id="2_5loeb"]
+[ext_resource type="Shader" uid="uid://rn22441wms8n" path="res://moon_sky.gdshader" id="7_gh42"]
+[ext_resource type="Texture2D" uid="uid://bb0031k2ak7ku" path="res://textures/Grass/Grass_ah.png" id="8_gbfbk"]
+[ext_resource type="Texture2D" uid="uid://gllmd2d0msx2" path="res://textures/Stone/Stone_ah.png" id="9_ioo17"]
+[ext_resource type="Script" uid="uid://cgsiuijjou3ta" path="res://scripts/moon_light_sync.gd" id="13_sync"]
+[ext_resource type="Script" uid="uid://ggp8qjh78yav" path="res://scripts/wave_spawner.gd" id="14_spwn"]
+[ext_resource type="PackedScene" path="res://scenes/mage_enemy.tscn" id="15_mage"]
+[ext_resource type="PackedScene" path="res://scenes/melee_enemy.tscn" id="16_dummy"]
+[ext_resource type="Script" uid="uid://e74wl0f6fpbm" path="res://scripts/generador_mapa.gd" id="17_gen"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
+shader = ExtResource("7_gh42")
+shader_parameter/moon_position = Vector3(0.4, 0.5, 0.75)
+shader_parameter/moon_size = 0.15
+shader_parameter/moon_softness = 0.003
+shader_parameter/moon_color = Vector3(0.7, 0.72, 0.9)
+shader_parameter/moon_brightness = 1.5
+shader_parameter/moon_glow = 0.25
+shader_parameter/glow_spread = 40.0
+shader_parameter/sky_top = Vector3(0.005, 0.005, 0.02)
+shader_parameter/sky_horizon = Vector3(0.03, 0.025, 0.05)
+shader_parameter/sky_ground = Vector3(0.003, 0.003, 0.006)
+shader_parameter/cloud_color = Vector3(0.06, 0.03, 0.08)
+shader_parameter/cloud_highlight = Vector3(0.25, 0.15, 0.35)
+shader_parameter/cloud_density = 0.6
+shader_parameter/cloud_speed = 0.008
+shader_parameter/cloud_height = 0.5
+shader_parameter/cloud_thickness = 0.8
+shader_parameter/star_brightness = 0.8
+
+[sub_resource type="Sky" id="Sky_moon"]
+sky_material = SubResource("ShaderMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_pkg7o"]
+background_mode = 2
+sky = SubResource("Sky_moon")
+ambient_light_color = Color(0.2, 0.15, 0.25, 1)
+ambient_light_energy = 0.5
+tonemap_mode = 2
+glow_enabled = true
+glow_levels/2 = 1.0
+glow_levels/3 = 1.0
+glow_levels/4 = 0.8
+glow_levels/5 = 0.4
+glow_levels/6 = 0.2
+glow_intensity = 1.5
+glow_bloom = 0.2
+glow_hdr_threshold = 0.5
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.08627451, 0.047058824, 0.14117648, 1)
+fog_density = 0.2
+fog_sky_affect = 0.2
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.03
+volumetric_fog_albedo = Color(0.09411765, 0.03137255, 0.14901961, 1)
+volumetric_fog_emission = Color(0.09411765, 0.03137255, 0.14901961, 1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_gv5m4"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wse8f"]
+albedo_texture = ExtResource("8_gbfbk")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ic0uy"]
+albedo_texture = ExtResource("9_ioo17")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ioo17"]
+albedo_texture = ExtResource("9_ioo17")
+
+[node name="World" type="Node3D" unique_id=1758483770]
+
+[node name="GeneradorMapa" type="Node3D" parent="." unique_id=1392638404]
+script = ExtResource("17_gen")
+
+[node name="WaveSpawner" type="Node3D" parent="." unique_id=1482377135]
+script = ExtResource("14_spwn")
+enemy_types = Array[PackedScene]([ExtResource("15_mage"), ExtResource("16_dummy")])
+player_path = NodePath("../Player")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1867180721]
+environment = SubResource("Environment_pkg7o")
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=786717476]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+script = ExtResource("1_f3sb7")
+walk_speed = 15.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player" unique_id=254416246]
+shape = SubResource("CapsuleShape3D_gv5m4")
+
+[node name="Head" type="Node3D" parent="Player" unique_id=769412907]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Player/Head" unique_id=2078898511]
+
+[node name="SpellOrigin" type="Marker3D" parent="Player/Head/Camera3D" unique_id=-480951722]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, -0.2)
+
+[node name="GestureRecognizer" type="Node" parent="Player" unique_id=416076752]
+script = ExtResource("2_5loeb")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=753106684]
+light_color = Color(0.7, 0.72, 0.9, 1)
+light_energy = 0.2
+shadow_enabled = true
+shadow_bias = 0.02
+shadow_normal_bias = 0.1
+script = ExtResource("13_sync")
+
+[node name="Floor" type="CSGBox3D" parent="." unique_id=2120549311]
+use_collision = true
+size = Vector3(120, 0, 120)
+material = SubResource("StandardMaterial3D_wse8f")
+
+[node name="Pilares" type="Node3D" parent="." unique_id=1943689421]
+
+[node name="Pila_Base" type="CSGBox3D" parent="Pilares" unique_id=889547743]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.937321, 7.5, -24.65923)
+use_collision = true
+size = Vector3(3, 15, 3)
+material = SubResource("StandardMaterial3D_ic0uy")
+
+[node name="Antorcha1" type="OmniLight3D" parent="Pilares/Pila_Base" unique_id=1712590686]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.6)
+light_color = Color(0.7291787, 0.3549582, 1.92523e-07, 1)
+light_energy = 4.0
+light_volumetric_fog_energy = 5.0
+shadow_enabled = true
+omni_range = 15.0
+omni_shadow_mode = 0
+
+[node name="Pila_Base2" type="CSGBox3D" parent="Pilares" unique_id=1222114018]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.937321, 7.5, 23.964573)
+use_collision = true
+size = Vector3(3, 15, 3)
+material = SubResource("StandardMaterial3D_ic0uy")
+
+[node name="Antorcha1" type="OmniLight3D" parent="Pilares/Pila_Base2" unique_id=391282556]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.6)
+light_color = Color(0.7291787, 0.3549582, 1.92523e-07, 1)
+light_energy = 4.0
+light_volumetric_fog_energy = 5.0
+shadow_enabled = true
+omni_range = 15.0
+omni_shadow_mode = 0
+
+[node name="Pila_Base3" type="CSGBox3D" parent="Pilares" unique_id=2080359839]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.95192, 7.5, 23.964573)
+use_collision = true
+size = Vector3(3, 15, 3)
+material = SubResource("StandardMaterial3D_ic0uy")
+
+[node name="Antorcha1" type="OmniLight3D" parent="Pilares/Pila_Base3" unique_id=363724203]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.6)
+light_color = Color(0.7291787, 0.3549582, 1.92523e-07, 1)
+light_energy = 4.0
+shadow_enabled = true
+omni_range = 15.0
+omni_shadow_mode = 0
+
+[node name="Pila_Base4" type="CSGBox3D" parent="Pilares" unique_id=1878234894]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.95192, 7.5, -22.25494)
+use_collision = true
+size = Vector3(3, 15, 3)
+material = SubResource("StandardMaterial3D_ic0uy")
+
+[node name="Pila_Base5" type="CSGBox3D" parent="Pilares" unique_id=1295573300]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.331985, 7.5, -8.572208)
+use_collision = true
+size = Vector3(3, 15, 3)
+material = SubResource("StandardMaterial3D_ic0uy")
+
+[node name="Antorcha1" type="OmniLight3D" parent="Pilares/Pila_Base5" unique_id=395559525]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.6)
+light_color = Color(0.7291787, 0.3549582, 1.92523e-07, 1)
+light_energy = 4.0
+shadow_enabled = true
+omni_range = 15.0
+omni_shadow_mode = 0
+
+[node name="Walls" type="Node3D" parent="." unique_id=286981243]
+
+[node name="Wall" type="CSGBox3D" parent="Walls" unique_id=1726194198]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.5, 60)
+use_collision = true
+size = Vector3(120, 15, 1)
+material = SubResource("StandardMaterial3D_ioo17")
+
+[node name="Wall2" type="CSGBox3D" parent="Walls" unique_id=1831090958]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 7.5, 0)
+use_collision = true
+size = Vector3(1, 15, 120)
+material = SubResource("StandardMaterial3D_ioo17")
+
+[node name="Wall3" type="CSGBox3D" parent="Walls" unique_id=1571705460]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.5, -60)
+use_collision = true
+size = Vector3(120, 15, 1)
+material = SubResource("StandardMaterial3D_ioo17")
+
+[node name="Wall4" type="CSGBox3D" parent="Walls" unique_id=1183742931]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 7.5, 0)
+use_collision = true
+size = Vector3(1, 15, 120)
+material = SubResource("StandardMaterial3D_ioo17")
+
+[node name="Antorcha1" type="OmniLight3D" parent="Walls/Wall4" unique_id=728489623]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.6)
+light_color = Color(0.7291787, 0.3549582, 1.92523e-07, 1)
+light_energy = 4.0
+shadow_enabled = true
+omni_range = 15.0
+omni_shadow_mode = 0
+
+[node name="Wall5" type="CSGBox3D" parent="Walls" unique_id=1805189343]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 7.5, 0)
+use_collision = true
+size = Vector3(1, 15, 120)
+material = SubResource("StandardMaterial3D_ioo17")
+
+[node name="Wall6" type="CSGBox3D" parent="Walls" unique_id=1444890400]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.5, -60)
+use_collision = true
+size = Vector3(120, 15, 1)
+material = SubResource("StandardMaterial3D_ioo17")
+
+[node name="Wall7" type="CSGBox3D" parent="Walls" unique_id=2039716396]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 7.5, 0)
+use_collision = true
+size = Vector3(1, 15, 120)
+material = SubResource("StandardMaterial3D_ioo17")
+
+[node name="Lights" type="Node3D" parent="." unique_id=1535521627]
