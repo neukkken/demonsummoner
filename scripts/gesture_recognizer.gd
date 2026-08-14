@@ -7,7 +7,6 @@ signal gesture_detected(gesture_name: String)
 var gesture_displacement: Vector2 = Vector2.ZERO
 var gesture_active: bool = false
 
-
 func _input(event: InputEvent) -> void:
 	if event is not InputEventMouseMotion:
 		return
@@ -25,7 +24,6 @@ func _input(event: InputEvent) -> void:
 		gesture_active = false
 		_process_gesture()
 
-
 func _process_gesture() -> void:
 	var dist := gesture_displacement.length()
 
@@ -37,12 +35,20 @@ func _process_gesture() -> void:
 	var angle := rad_to_deg(gesture_displacement.angle())
 	var gesture_name := ""
 
-	if angle >= -45.0 and angle < 45.0:
+	if angle >= -22.5 and angle < 22.5:
 		gesture_name = "RIGHT"
-	elif angle >= 45.0 and angle < 135.0:
+	elif angle >= 22.5 and angle < 67.5:
+		gesture_name = "DOWN_RIGHT"
+	elif angle >= 67.5 and angle < 112.5:
 		gesture_name = "DOWN"
-	elif angle >= -135.0 and angle < -45.0:
+	elif angle >= 112.5 and angle < 157.5:
+		gesture_name = "DOWN_LEFT"
+	elif angle >= -67.5 and angle < -22.5:
+		gesture_name = "UP_RIGHT"
+	elif angle >= -112.5 and angle < -67.5:
 		gesture_name = "UP"
+	elif angle >= -157.5 and angle < -112.5:
+		gesture_name = "UP_LEFT"
 	else:
 		gesture_name = "LEFT"
 
@@ -52,22 +58,28 @@ func _process_gesture() -> void:
 		" | delta: (", snapped(gesture_displacement.x, 0.1),
 		", ", snapped(gesture_displacement.y, 0.1), ")")
 
-
 func get_progress() -> float:
 	if not gesture_active:
 		return 0.0
 	return clampf(gesture_displacement.length() / gesture_min_distance, 0.0, 1.0)
 
-
 func get_current_direction() -> String:
 	if gesture_displacement.length() < 1.0:
 		return "—"
 	var angle := rad_to_deg(gesture_displacement.angle())
-	if angle >= -45.0 and angle < 45.0:
+	if angle >= -22.5 and angle < 22.5:
 		return "RIGHT"
-	elif angle >= 45.0 and angle < 135.0:
+	elif angle >= 22.5 and angle < 67.5:
+		return "DOWN_RIGHT"
+	elif angle >= 67.5 and angle < 112.5:
 		return "DOWN"
-	elif angle >= -135.0 and angle < -45.0:
+	elif angle >= 112.5 and angle < 157.5:
+		return "DOWN_LEFT"
+	elif angle >= -67.5 and angle < -22.5:
+		return "UP_RIGHT"
+	elif angle >= -112.5 and angle < -67.5:
 		return "UP"
+	elif angle >= -157.5 and angle < -112.5:
+		return "UP_LEFT"
 	else:
 		return "LEFT"

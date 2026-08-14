@@ -6,7 +6,7 @@ var _max_health: float = 100.0
 
 
 func _ready() -> void:
-	var white_tex := _make_white_texture()
+	var white_tex := AssetLoader.load_asset("low/healthbar3d_64x12.png", func(): return _make_white_texture())
 
 	_bg = Sprite3D.new()
 	_bg.texture = white_tex

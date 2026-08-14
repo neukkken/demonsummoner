@@ -240,6 +240,7 @@ func take_damage(amount: float) -> void:
 
 func _die() -> void:
 	_is_alive = false
+	AudioManager.play_enemy_death(global_position)
 	var death_pos = global_position
 	_spawn_soul_at(death_pos)
 	if _player != null and _player.has_method("restore_mana"):
@@ -366,6 +367,7 @@ func _get_ice_mat() -> StandardMaterial3D:
 func _deal_attack_damage() -> void:
 	if not _attacking:
 		return
+	AudioManager.play_melee_swing(global_position)
 	var target := _get_target()
 	if target != null and target.has_method("take_damage"):
 		target.take_damage(attack_damage)
@@ -394,6 +396,8 @@ func _physics_process(_delta: float) -> void:
 	var dist := global_position.distance_to(target.global_position)
 	var moving = dist > attack_distance + 0.3
 
+	var horizontal_velocity = Vector3.ZERO
+
 	if moving:
 		_nav.target_position = target.global_position
 		var next_pos = _nav.get_next_path_position()
@@ -401,7 +405,7 @@ func _physics_process(_delta: float) -> void:
 		to_next.y = 0
 		if to_next.length_squared() > 0.1:
 			var dir = to_next.normalized()
-			velocity = dir * speed
+			horizontal_velocity = dir * speed
 			rotation.y = atan2(dir.x, dir.z)
 			_play_anim("walk")
 			if Engine.get_frames_drawn() % 60 == 0:
@@ -409,13 +413,13 @@ func _physics_process(_delta: float) -> void:
 		else:
 			var dir = global_position.direction_to(target.global_position)
 			dir.y = 0
-			velocity = dir * speed
+			horizontal_velocity = dir * speed
 			rotation.y = atan2(dir.x, dir.z)
 			_play_anim("walk")
 			if Engine.get_frames_drawn() % 60 == 0:
 				print("[NAV] directo, dist=", snapped(dist, 0.1))
 	else:
-		velocity = Vector3.ZERO
+		horizontal_velocity = Vector3.ZERO
 		_attack_cooldown -= _delta
 		if _attack_cooldown <= 0 and dist < attack_distance:
 			_play_anim("attack")
@@ -427,5 +431,12 @@ func _physics_process(_delta: float) -> void:
 			_play_anim("idle")
 			var dir = global_position.direction_to(target.global_position)
 			rotation.y = atan2(dir.x, dir.z)
+
+	velocity.x = horizontal_velocity.x
+	velocity.z = horizontal_velocity.z
+	if not is_on_floor():
+		velocity.y -= 9.8 * _delta
+	else:
+		velocity.y = 0.0
 
 	move_and_slide()

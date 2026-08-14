@@ -1,9 +1,9 @@
 extends Node3D
 
 func _ready() -> void:
-	for i in range(35):
+	for i in range(18):
 		var piece = MeshInstance3D.new()
-		var s = randf_range(0.1, 0.22)
+		var s = randf_range(0.12, 0.25)
 		var box = BoxMesh.new()
 		box.size = Vector3(s, s, s)
 		var t = randf()
@@ -26,9 +26,9 @@ func _ready() -> void:
 		tween.parallel().tween_property(mat, "albedo_color", Color(0, 0, 0, 0), 0.6)
 		tween.tween_callback(piece.queue_free)
 
-	for i in range(18):
+	for i in range(10):
 		var piece = MeshInstance3D.new()
-		var s = randf_range(0.04, 0.09)
+		var s = randf_range(0.05, 0.1)
 		var box = BoxMesh.new()
 		box.size = Vector3(s, s, s)
 		var color = Color(1, randf_range(0.7, 0.95), randf_range(0.1, 0.3), 1)

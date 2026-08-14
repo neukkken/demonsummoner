@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/suicide_enemy.gd" id="1_vrdjf"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_abc12"]
+radius = 0.5
+
+[node name="SuicideEnemy" type="CharacterBody3D"]
+collision_layer = 1
+collision_mask = 1
+script = ExtResource("1_vrdjf")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_abc12")

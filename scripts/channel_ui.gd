@@ -39,9 +39,9 @@ func _ready() -> void:
 	_build_ui()
 
 func _generate_rune_textures() -> void:
-	_rune_textures["FIRE"] = _make_rune_fire(48)
-	_rune_textures["ICE"] = _make_rune_ice(48)
-	_rune_textures["VOID"] = _make_rune_void(48)
+	_rune_textures["FIRE"] = AssetLoader.load_asset("critical/rune_fire_48.png", func(): return _make_rune_fire(48))
+	_rune_textures["ICE"] = AssetLoader.load_asset("critical/rune_ice_48.png", func(): return _make_rune_ice(48))
+	_rune_textures["VOID"] = AssetLoader.load_asset("critical/rune_void_48.png", func(): return _make_rune_void(48))
 
 func _make_rune_fire(s: int) -> ImageTexture:
 	var img := Image.create(s, s, false, Image.FORMAT_RGBA8)

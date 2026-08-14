@@ -1,7 +1,7 @@
 extends Area3D
 
 @export var speed: float = 30.0
-@export var damage: float = 25.0
+@export var damage: float = 125.0
 
 var effect_type: String = "fire"
 var freeze_duration: float = 3.0
@@ -10,10 +10,15 @@ var freeze_slow: float = 0.5
 var _trail_timer: float = 0.0
 var _dying: bool = false
 var _time: float = 0.0
+var _target: Node3D = null
+var damage_origin: Node = null
 
 @onready var _light: OmniLight3D = $OmniLight3D
 @onready var _flames: Node3D = get_node_or_null("Flames")
 @onready var _crystals: Node3D = get_node_or_null("Crystals")
+
+func set_target(node: Node3D) -> void:
+	_target = node
 
 static var _pool: Array[MeshInstance3D] = []
 static var _pool_idx: int = 0
@@ -102,6 +107,11 @@ func _on_timer_expired() -> void:
 	queue_free()
 
 func _physics_process(delta: float) -> void:
+	if _target and is_instance_valid(_target):
+		var dir = global_position.direction_to(_target.global_position)
+		var angle_diff = absf(global_transform.basis.z.angle_to(-dir))
+		if angle_diff > 0.01:
+			look_at(_target.global_position, Vector3.UP)
 	global_position -= global_transform.basis.z * speed * delta
 
 func _process(delta: float) -> void:
@@ -212,6 +222,8 @@ func _spawn_impact() -> void:
 	ltween.tween_callback(light.queue_free)
 
 func _on_body_entered(body: Node) -> void:
+	if _dying:
+		return
 	if body.is_in_group("ice_walls"):
 		if effect_type == "fire":
 			_spawn_impact()
@@ -224,5 +236,7 @@ func _on_body_entered(body: Node) -> void:
 		body.apply_freeze(freeze_duration, freeze_slow)
 	elif body.has_method("take_damage"):
 		body.take_damage(damage)
+		if damage_origin and damage_origin.has_method("_on_projectile_hit"):
+			damage_origin._on_projectile_hit(damage)
 	_dying = true
 	queue_free()

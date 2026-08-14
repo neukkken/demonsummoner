@@ -15,14 +15,17 @@ general/updates_per_second=30
 [application]
 
 config/name="demon summoner"
-config/version="0.4.0-alpha"
+config/version="0.6.1-alpha"
 run/main_scene="res://scenes/main_menu.tscn"
-config/features=PackedStringArray("4.6", "Forward Plus")
-config/icon="res://icon.svg"
+config/features=PackedStringArray("4.7", "Forward Plus")
+config/icon="res://sprites/Logo DEMON-SUMMOER.png"
 
 [autoload]
 
 DatosJuego="*res://scripts/datos_juego.gd"
+AudioManager="*res://scripts/audio_manager.gd"
+ItemManager="*res://scripts/item_manager.gd"
+AssetLoader="*res://scripts/asset_loader.gd"
 
 [display]
 

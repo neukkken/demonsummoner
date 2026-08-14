@@ -4,14 +4,17 @@ var _player_level: int = 1
 var _player_xp: int = 0
 var _top_stat: String = ""
 var _top_stat_val: int = 0
+var _play_time: String = "0:00"
 
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
+	AudioManager.play_game_over()
 	_build_ui()
 
-func set_stats(level: int, fire: int, ice: int, hp: int, mana: int, regen: int) -> void:
+func set_stats(level: int, fire: int, ice: int, hp: int, mana: int, regen: int, play_time: String = "0:00") -> void:
 	_player_level = level
 	_player_xp = fire * 50 + ice * 50
+	_play_time = play_time
 	var stats := {"Fuego": fire, "Hielo": ice, "Vida": hp, "Maná": mana, "Regen": regen}
 	var best_key: String = ""
 	var best_val: int = 0
@@ -31,6 +34,7 @@ func _save_score() -> void:
 		"xp": _player_xp,
 		"top_stat": _top_stat,
 		"top_val": _top_stat_val,
+		"time": _play_time,
 		"date": Time.get_datetime_string_from_system()
 	}
 	scores.append(entry)
@@ -61,13 +65,12 @@ func _build_ui() -> void:
 	panel.set_anchors_preset(Control.PRESET_CENTER, false)
 	panel.position = Vector2(-220, -160)
 	panel.size = Vector2(440, 320)
-	var panel_bg := StyleBoxFlat.new()
-	panel_bg.bg_color = Color(0.06, 0.04, 0.08, 0.95)
-	panel_bg.border_width_left = 2
-	panel_bg.border_width_top = 2
-	panel_bg.border_width_right = 2
-	panel_bg.border_width_bottom = 2
-	panel_bg.border_color = Color(0.4, 0.2, 0.5, 0.8)
+	var panel_tex := AssetLoader.load_asset("medium/gameover_panel_440x320.png")
+	if panel_tex:
+		var panel_bg := StyleBoxTexture.new()
+		panel_bg.texture = panel_tex
+		panel_bg.modulate_color = Color(1, 1, 1, 0.95)
+		panel.add_theme_stylebox_override("panel", panel_bg)
 	add_child(panel)
 
 	var title := Label.new()
@@ -110,9 +113,9 @@ func _build_ui() -> void:
 	add_child(lb_label)
 
 	var retry_btn := TextureButton.new()
-	retry_btn.texture_normal = _make_btn_tex("normal")
-	retry_btn.texture_hover = _make_btn_tex("hover")
-	retry_btn.texture_pressed = _make_btn_tex("pressed")
+	retry_btn.texture_normal = AssetLoader.load_asset("buttons/gameover_200x36_normal.png", func(): return _make_btn_tex("normal"))
+	retry_btn.texture_hover = AssetLoader.load_asset("buttons/gameover_200x36_hover.png", func(): return _make_btn_tex("hover"))
+	retry_btn.texture_pressed = AssetLoader.load_asset("buttons/gameover_200x36_pressed.png", func(): return _make_btn_tex("pressed"))
 	retry_btn.size = Vector2(200, 36)
 	retry_btn.custom_minimum_size = Vector2(200, 36)
 	retry_btn.set_anchors_preset(Control.PRESET_CENTER, false)
@@ -131,9 +134,9 @@ func _build_ui() -> void:
 	add_child(retry_label)
 
 	var quit_btn := TextureButton.new()
-	quit_btn.texture_normal = _make_btn_tex("normal")
-	quit_btn.texture_hover = _make_btn_tex("hover")
-	quit_btn.texture_pressed = _make_btn_tex("pressed")
+	quit_btn.texture_normal = AssetLoader.load_asset("buttons/gameover_200x36_normal.png", func(): return _make_btn_tex("normal"))
+	quit_btn.texture_hover = AssetLoader.load_asset("buttons/gameover_200x36_hover.png", func(): return _make_btn_tex("hover"))
+	quit_btn.texture_pressed = AssetLoader.load_asset("buttons/gameover_200x36_pressed.png", func(): return _make_btn_tex("pressed"))
 	quit_btn.size = Vector2(200, 36)
 	quit_btn.custom_minimum_size = Vector2(200, 36)
 	quit_btn.set_anchors_preset(Control.PRESET_CENTER, false)
@@ -194,7 +197,7 @@ func _make_btn_tex(state: String) -> ImageTexture:
 func _update_display() -> void:
 	var stats_node: Label = get_node("StatsText")
 	if stats_node:
-		stats_node.text = "Nivel: " + str(_player_level) + "\nXP: " + str(_player_xp) + "\nMejora: " + _top_stat + " +" + str(_top_stat_val)
+		stats_node.text = "Nivel: " + str(_player_level) + "\nTiempo: " + _play_time + "\nXP: " + str(_player_xp) + "\nMejora: " + _top_stat + " +" + str(_top_stat_val)
 
 	var lb_node: Label = get_node("LeaderboardText")
 	if lb_node:
@@ -203,12 +206,19 @@ func _update_display() -> void:
 		var rank := 1
 		for entry in scores:
 			var name: String = "TÚ" if entry["level"] == _player_level and entry["xp"] == _player_xp else "Jugador"
-			text += "#" + str(rank) + "  " + name + "  LV " + str(entry["level"]) + "  " + str(entry["top_stat"]) + " +" + str(entry["top_val"]) + "\n"
+			var t = entry.get("time", "?")
+			text += "#" + str(rank) + "  " + name + "  LV " + str(entry["level"]) + "  " + t + "  " + str(entry["top_stat"]) + " +" + str(entry["top_val"]) + "\n"
 			rank += 1
 		lb_node.text = text if text else "(sin datos)"
 
 func _on_retry() -> void:
 	get_tree().paused = false
+	DatosJuego.reset()
+	var player = get_tree().get_first_node_in_group("player")
+	if player:
+		var im = get_node("/root/ItemManager")
+		if im:
+			im.clear(player)
 	get_tree().reload_current_scene()
 
 func _on_quit() -> void:

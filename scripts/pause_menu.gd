@@ -36,6 +36,7 @@ func _build_ui() -> void:
 
 	_menu_container.add_child(_make_button("REANUDAR", Color(0.7, 0.7, 0.7), _resume))
 	_menu_container.add_child(_make_button("CÓMO INVOCAR", Color(0.6, 0.6, 0.8), _toggle_guide))
+	_menu_container.add_child(_make_button("CONFIGURACIÓN", Color(0.6, 0.6, 0.8), _show_settings))
 	_menu_container.add_child(_make_button("MENÚ PRINCIPAL", Color(0.6, 0.6, 0.8), _go_main_menu))
 	_menu_container.add_child(_make_button("SALIR", Color(0.6, 0.4, 0.4), _quit))
 
@@ -71,34 +72,32 @@ func _build_guide() -> void:
 	guide_vbox.add_child(guide_title)
 
 	guide_vbox.add_child(_make_section("SEGADOR DE SANGRE", "Esbirro cuerpo a cuerpo", Color(0.8, 0.15, 0.1), [
-		"Elemento: NECROMANCIA",
-		"Gesto: → (RIGHT) — mover mouse a la derecha con Shift",
-		"Costo: 30% de la vida actual",
+		"Invocación directa con tecla R",
+		"Costo: 20% de la vida actual",
 		"Duración: 30 segundos",
-		"Cooldown: 60 segundos",
+		"Cooldown: 30 segundos",
 		"HP: 300",
 		"Ataque: Lanza vórtice de sangre cada 10s",
 		"",
 		"Cómo usar:",
-		"  1. Presiona R (NECROMANCIA)",
-		"  2. Mantén Shift + arrastra mouse a la derecha",
-		"  3. Suelta Shift para invocar",
+		"  1. Presiona R para invocar al Segador",
+		"  2. Gasta 20% de tu HP actual",
+		"  3. El Segador aparece frente a ti",
 	]))
 
 	guide_vbox.add_child(_make_section("DEVORADOR DE ALMAS", "Demonio de área devastador", Color(0.5, 0.05, 0.7), [
-		"Elemento: NECROMANCIA (automático)",
-		"Gesto: ↑ → ↓ → ← → ↑ → ↓ (pentagrama)",
-		"  (UP, DOWN, LEFT, UP, DOWN)",
-		"Requisito: 10 almas cosechadas",
+		"Solo se invoca con el pentagrama (↑ ↓ ← ↑ ↓)",
+		"",
+		"Requisito: 50 almas cosechadas",
 		"Duración: 4 segundos de festín",
-		"Cooldown: 30 segundos",
 		"Daño: 35 de pulso cada 0.5s a todos los enemigos cercanos",
 		"",
 		"Cómo usar:",
 		"  1. Mata enemigos para cosechar almas (blancas)",
-		"  2. Cuando tengas 10, el pentagrama aparece en el HUD",
-		"  3. Con NECROMANCIA activa, dibuja ↑ ↓ ← ↑ ↓",
-		"  4. El Devorador aparece en tu posición",
+		"  2. Cuando tengas 50, el pentagrama aparece en el HUD",
+		"  3. Pulsa F para seleccionar NECROMANCIA",
+		"  4. Dibuja ↑ ↓ ← ↑ ↓ con Shift + mouse",
+		"  5. El Devorador aparece en tu posición",
 	]))
 
 	var spacer = Control.new()
@@ -109,6 +108,8 @@ func _build_guide() -> void:
 	close_guide.text = "CERRAR"
 	close_guide.custom_minimum_size = Vector2(200, 40)
 	close_guide.pressed.connect(_toggle_guide)
+	close_guide.pressed.connect(AudioManager.play_click)
+	close_guide.mouse_entered.connect(AudioManager.play_hover)
 	close_guide.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	close_guide.add_theme_font_size_override("font_size", 16)
 	guide_vbox.add_child(close_guide)
@@ -150,11 +151,15 @@ func _make_button(text: String, color: Color, callback: Callable) -> Button:
 	btn.add_theme_color_override("font_color", color)
 	btn.add_theme_font_size_override("font_size", 18)
 	btn.pressed.connect(callback)
+	btn.pressed.connect(AudioManager.play_click)
+	btn.mouse_entered.connect(AudioManager.play_hover)
 	return btn
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") and visible:
-		if _guide_visible:
+		if _settings_container != null:
+			_close_settings()
+		elif _guide_visible:
 			_toggle_guide()
 		else:
 			_resume()
@@ -166,6 +171,9 @@ func _pause() -> void:
 	visible = true
 	_guide_visible = false
 	_guide_container.visible = false
+	if _settings_container != null:
+		_settings_container.queue_free()
+		_settings_container = null
 
 func _resume() -> void:
 	get_tree().paused = false
@@ -185,3 +193,132 @@ func _go_main_menu() -> void:
 
 func _quit() -> void:
 	get_tree().quit()
+
+var _settings_container: ColorRect = null
+var _settings_visible: bool = false
+
+func _show_settings() -> void:
+	if _settings_container != null:
+		_settings_container.queue_free()
+	_settings_container = ColorRect.new()
+	_settings_container.color = Color(0.05, 0.02, 0.08, 0.95)
+	var screen = DisplayServer.window_get_size()
+	_settings_container.size = Vector2(400, 310)
+	_settings_container.position = Vector2(screen.x * 0.5 - 200, screen.y * 0.5 - 155)
+	_settings_container.mouse_filter = Control.MOUSE_FILTER_STOP
+	_overlay.add_child(_settings_container)
+	_menu_container.visible = false
+
+	var title := Label.new()
+	title.text = "CONFIGURACIÓN"
+	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_color_override("font_color", Color(0.85, 0.65, 0.1))
+	title.set_anchors_preset(Control.PRESET_CENTER, false)
+	title.position = Vector2(30, 15)
+	title.size = Vector2(340, 28)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_settings_container.add_child(title)
+
+	_make_setting_slider("MÚSICA", AudioManager.get_music_volume_db(), Vector2(30, 60), _on_pause_slider_changed.bind("MÚSICAVal", AudioManager.set_music_volume_db), _settings_container)
+	_make_setting_slider("EFECTOS", AudioManager.get_sfx_volume_db(), Vector2(30, 105), _on_pause_slider_changed.bind("EFECTOSVal", AudioManager.set_sfx_volume_db), _settings_container)
+	_make_distance_slider(Vector2(30, 150), _settings_container)
+
+	var close_btn := Button.new()
+	close_btn.text = "CERRAR"
+	close_btn.custom_minimum_size = Vector2(200, 36)
+	close_btn.set_anchors_preset(Control.PRESET_CENTER, false)
+	close_btn.position = Vector2(100, 230)
+	close_btn.pressed.connect(_close_settings)
+	close_btn.pressed.connect(AudioManager.play_click)
+	close_btn.mouse_entered.connect(AudioManager.play_hover)
+	close_btn.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	close_btn.add_theme_font_size_override("font_size", 14)
+	_settings_container.add_child(close_btn)
+
+func _make_distance_slider(pos: Vector2, parent: Control) -> void:
+	var lbl := Label.new()
+	lbl.text = "DISTANCIA"
+	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.add_theme_color_override("font_color", Color(0.85, 0.8, 0.7))
+	lbl.position = pos
+	lbl.size = Vector2(80, 28)
+	parent.add_child(lbl)
+
+	var slider := HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 2.0
+	slider.value = float(DatosJuego.render_distance)
+	slider.step = 1.0
+	slider.position = Vector2(pos.x + 90, pos.y)
+	slider.size = Vector2(180, 28)
+	slider.add_theme_color_override("grabber_color", Color(0.6, 0.4, 0.7))
+	slider.add_theme_color_override("grabber_highlight_color", Color(0.7, 0.5, 0.9))
+	
+	var val_label := Label.new()
+	var names := ["CORTA", "MEDIA", "LARGA"]
+	val_label.text = names[DatosJuego.render_distance]
+	val_label.add_theme_font_size_override("font_size", 12)
+	val_label.add_theme_color_override("font_color", Color(0.6, 0.5, 0.7))
+	val_label.position = Vector2(pos.x + 280, pos.y)
+	val_label.size = Vector2(50, 28)
+	val_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	parent.add_child(val_label)
+	
+	slider.value_changed.connect(func(val):
+		DatosJuego.render_distance = int(val)
+		val_label.text = names[int(val)]
+	)
+	parent.add_child(slider)
+
+func _close_settings() -> void:
+	if _settings_container:
+		_settings_container.queue_free()
+		_settings_container = null
+	_menu_container.visible = true
+
+func _make_setting_slider(label_text: String, db_val: float, pos: Vector2, callback: Callable, parent: Control) -> void:
+	var lbl := Label.new()
+	lbl.text = label_text
+	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.add_theme_color_override("font_color", Color(0.85, 0.8, 0.7))
+	lbl.position = Vector2(pos.x, pos.y)
+	lbl.size = Vector2(80, 28)
+	parent.add_child(lbl)
+
+	var slider := HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 100.0
+	slider.value = _db_to_slider_val(db_val)
+	slider.step = 1.0
+	slider.position = Vector2(pos.x + 90, pos.y)
+	slider.size = Vector2(180, 28)
+	slider.add_theme_color_override("grabber_color", Color(0.6, 0.4, 0.7))
+	slider.add_theme_color_override("grabber_highlight_color", Color(0.7, 0.5, 0.9))
+	slider.drag_ended.connect(callback.bind(slider))
+	parent.add_child(slider)
+
+	var val_label := Label.new()
+	val_label.text = str(int(slider.value)) + "%"
+	val_label.add_theme_font_size_override("font_size", 12)
+	val_label.add_theme_color_override("font_color", Color(0.6, 0.5, 0.7))
+	val_label.position = Vector2(pos.x + 280, pos.y)
+	val_label.size = Vector2(50, 28)
+	val_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	val_label.name = label_text + "Val"
+	parent.add_child(val_label)
+
+func _on_pause_slider_changed(_was_dragged: bool, slider: HSlider, label_name: String, setter: Callable) -> void:
+	var db := _slider_val_to_db(slider.value)
+	setter.call(db)
+	var lbl := _settings_container.get_node(label_name) as Label
+	if lbl:
+		lbl.text = str(int(slider.value)) + "%"
+
+static func _slider_val_to_db(val: float) -> float:
+	if val <= 0.0: return -80.0
+	var t := val / 100.0
+	return -80.0 * (1.0 - t) * (1.0 - t)
+
+static func _db_to_slider_val(db: float) -> float:
+	if db <= -80.0: return 0.0
+	return (1.0 - sqrt(db / -80.0)) * 100.0

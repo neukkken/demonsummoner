@@ -10,6 +10,11 @@
 [ext_resource type="PackedScene" path="res://scenes/mage_enemy.tscn" id="15_mage"]
 [ext_resource type="PackedScene" path="res://scenes/melee_enemy.tscn" id="16_dummy"]
 [ext_resource type="Script" uid="uid://e74wl0f6fpbm" path="res://scripts/generador_mapa.gd" id="17_gen"]
+[ext_resource type="PackedScene" path="res://scenes/suicide_enemy.tscn" id="18_suicide"]
+[ext_resource type="PackedScene" path="res://scenes/archer_enemy.tscn" id="19_archer"]
+[ext_resource type="PackedScene" path="res://scenes/shaman_enemy.tscn" id="20_shaman"]
+[ext_resource type="PackedScene" path="res://scenes/guardian_enemy.tscn" id="21_guardian"]
+[ext_resource type="PackedScene" path="res://scenes/miniboss_enemy.tscn" id="22_miniboss"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
 shader = ExtResource("7_gh42")
@@ -61,8 +66,14 @@ volumetric_fog_emission = Color(0.09411765, 0.03137255, 0.14901961, 1)
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_gv5m4"]
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(120, 0.5, 120)
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wse8f"]
 albedo_texture = ExtResource("8_gbfbk")
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(120, 0.5, 120)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ic0uy"]
 albedo_texture = ExtResource("9_ioo17")
@@ -77,14 +88,15 @@ script = ExtResource("17_gen")
 
 [node name="WaveSpawner" type="Node3D" parent="." unique_id=1482377135]
 script = ExtResource("14_spwn")
-enemy_types = Array[PackedScene]([ExtResource("15_mage"), ExtResource("16_dummy")])
+enemy_types = Array[PackedScene]([ExtResource("16_dummy"), ExtResource("15_mage"), ExtResource("18_suicide"), ExtResource("19_archer"), ExtResource("20_shaman"), ExtResource("21_guardian"), ExtResource("22_miniboss")])
 player_path = NodePath("../Player")
+xp_values = Array[int]([10, 25, 5, 8, 12, 20, 100])
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1867180721]
 environment = SubResource("Environment_pkg7o")
 
 [node name="Player" type="CharacterBody3D" parent="." unique_id=786717476]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
 script = ExtResource("1_f3sb7")
 walk_speed = 15.0
 
@@ -110,10 +122,15 @@ shadow_bias = 0.02
 shadow_normal_bias = 0.1
 script = ExtResource("13_sync")
 
-[node name="Floor" type="CSGBox3D" parent="." unique_id=2120549311]
-use_collision = true
-size = Vector3(120, 0, 120)
-material = SubResource("StandardMaterial3D_wse8f")
+[node name="Floor" type="StaticBody3D" parent="." unique_id=902479989]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=1055627718]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=20846129]
+material_override = SubResource("StandardMaterial3D_wse8f")
+mesh = SubResource("BoxMesh_floor")
 
 [node name="Pilares" type="Node3D" parent="." unique_id=1943689421]
 
@@ -214,23 +231,5 @@ light_energy = 4.0
 shadow_enabled = true
 omni_range = 15.0
 omni_shadow_mode = 0
-
-[node name="Wall5" type="CSGBox3D" parent="Walls" unique_id=1805189343]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 7.5, 0)
-use_collision = true
-size = Vector3(1, 15, 120)
-material = SubResource("StandardMaterial3D_ioo17")
-
-[node name="Wall6" type="CSGBox3D" parent="Walls" unique_id=1444890400]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.5, -60)
-use_collision = true
-size = Vector3(120, 15, 1)
-material = SubResource("StandardMaterial3D_ioo17")
-
-[node name="Wall7" type="CSGBox3D" parent="Walls" unique_id=2039716396]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 7.5, 0)
-use_collision = true
-size = Vector3(1, 15, 120)
-material = SubResource("StandardMaterial3D_ioo17")
 
 [node name="Lights" type="Node3D" parent="." unique_id=1535521627]

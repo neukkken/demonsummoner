@@ -20,10 +20,16 @@ var _blood_particles: Array[MeshInstance3D] = []
 var _spawn_y: float = 0.0
 
 func _ready() -> void:
+	AudioManager.play_summon_spawn(global_position)
 	_vortex_script = load("res://scripts/frozen_vortex.gd")
 	_setup_label()
 	_setup_mesh()
 	_setup_timer()
+	var p = _player if _player else get_tree().get_first_node_in_group("player")
+	if p and "level" in p:
+		var mult = 1.0 + (p.level - 1) * 0.1
+		_health = 300.0 * mult
+		_attack_interval = maxf(8.0, 10.0 - p.level * 0.2)
 
 func _setup_label() -> void:
 	_label = Label3D.new()
@@ -128,7 +134,8 @@ func _process(delta: float) -> void:
 			_mesh.rotation.y += delta * 6.0
 		else:
 			_mesh.rotation.y += delta * 0.5
-	var float_y = _spawn_y + 1.0 + sin(_anim_time * 1.2) * 0.5
+	var local_ground = DatosJuego.get_height(global_position.x, global_position.z)
+	var float_y = local_ground + 1.8 + sin(_anim_time * 1.2) * 0.5
 	global_position.y = float_y
 
 	for p in _blood_particles:
@@ -156,6 +163,7 @@ func take_damage(amount: float) -> void:
 	print("Summon recibio: ", amount, " HP: ", _health)
 	if _health <= 0:
 		_dying = true
+		AudioManager.play_summon_death(global_position)
 		queue_free()
 
 func _try_attack() -> void:

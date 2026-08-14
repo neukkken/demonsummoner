@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/spell_projectile.gd" id="1_lqgqs"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_5mt4g"]
-radius = 0.15
+radius = 0.5
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6hw7l"]
 albedo_color = Color(1, 0.3, 0.1, 1)

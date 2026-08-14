@@ -2,22 +2,27 @@ extends Node3D
 
 @export var model_path: String = "res://models/Fantasy_Heroes_Free/FBX/Characters/Knight.glb"
 
-var _lifetime = 4.0
-var _time_left = 4.0
+var _lifetime = 6.0
+var _time_left = 6.0
 var _label: Label3D
 var _mesh: MeshInstance3D
 var _base_y = 0.0
 var _anim_time = 0.0
 var _player: Node3D
 var _enemigos_marcados: Array[Node3D] = []
-var _dano_pulso: float = 35.0
+var _dano_pulso: float = 175.0
 var _pulse_interval: float = 0.5
 var _pulse_timer: float = 0.0
 
 func _ready():
+	AudioManager.play_summon_spawn(global_position)
 	_setup_mesh()
 	_setup_label()
 	_iniciar_festin()
+	var p = _player if _player else get_tree().get_first_node_in_group("player")
+	if p and "level" in p:
+		var mult = 1.0 + (p.level - 1) * 0.15
+		_dano_pulso = 35.0 * mult
 	var despawn = Timer.new()
 	despawn.one_shot = true
 	despawn.timeout.connect(_on_despawn)
@@ -378,11 +383,10 @@ func _spawn_final_blast():
 	flt.tween_callback(flash_light.queue_free)
 
 func _spawn_alma_curacion(pos: Vector3):
-	var alma = preload("res://scripts/alma_curacion.gd")
-	if alma == null:
+	var node = load("res://scripts/alma_espectral.gd").new()
+	if node == null:
 		return
-	var node = Area3D.new()
-	node.set_script(alma)
+	node._gem_type = "heal"
 	node.global_position = pos + Vector3(0, 1.0, 0)
 	get_tree().root.add_child(node)
 
@@ -394,6 +398,7 @@ func _on_despawn():
 	if _player != null and is_instance_valid(_player) and _player.is_inside_tree():
 		if _player.has_method("restore_mana"):
 			_player.restore_mana(20.0)
+	AudioManager.play_summon_death(global_position)
 	queue_free()
 
 func _process(delta):

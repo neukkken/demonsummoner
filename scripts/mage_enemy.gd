@@ -1,8 +1,8 @@
 extends CharacterBody3D
 
-@export var health: float = 80.0
-@export var shoot_interval: float = 2.5
-@export var projectile_damage: float = 15.0
+@export var health: float = 240.0
+@export var shoot_interval: float = 1.8
+@export var projectile_damage: float = 20.0
 @export var frozen_color: Color = Color(0.3, 0.6, 1, 1)
 @export var max_range: float = 18.0
 @export var min_range: float = 8.0
@@ -110,6 +110,7 @@ func take_damage(amount: float) -> void:
 
 func _die() -> void:
 	_dying = true
+	AudioManager.play_enemy_death(global_position)
 	var death_pos = global_position
 	_spawn_soul_at(death_pos)
 	if _player != null and _player.has_method("restore_mana"):
@@ -246,6 +247,7 @@ func _shoot_at_player() -> void:
 	var dist := global_position.distance_to(target.global_position)
 	if dist > max_range:
 		return
+	AudioManager.play_mage_shoot(global_position)
 	var proj := _projectile_scene.instantiate() as Area3D
 	if proj == null:
 		return
@@ -303,11 +305,9 @@ func _physics_process(_delta: float) -> void:
 func _process(delta: float) -> void:
 	if _dying or _ice_block or _is_paralizado or not is_inside_tree():
 		return
-	if not _float_init:
-		_base_y = global_position.y
-		_float_init = true
 	_anim_time += delta
-	global_position.y = _base_y + 0.8 + sin(_anim_time * 1.2) * 0.5
+	var target_h = DatosJuego.get_height(global_position.x, global_position.z)
+	global_position.y = target_h + 1.8 + sin(_anim_time * 1.2) * 0.5
 
 func _get_ice_mat() -> StandardMaterial3D:
 	if _ice_mat == null:

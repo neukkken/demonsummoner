@@ -1,6 +1,6 @@
 extends Node3D
 
-var _damage_per_tick = 10.0
+var _damage_per_tick = 50.0
 var _tick_interval = 0.5
 var _duration = 3.0
 var _tick_timer = 0.0
@@ -15,7 +15,7 @@ var _beam_light = null
 var _fading_out = false
 
 func _ready():
-	_tex = preload("res://scripts/frozen_black_hole.gd").generate(128)
+	_tex = AssetLoader.load_asset("low/vortex_128.png", func(): return preload("res://scripts/frozen_black_hole.gd").generate(128))
 
 	var quad = MeshInstance3D.new()
 	quad.mesh = QuadMesh.new()

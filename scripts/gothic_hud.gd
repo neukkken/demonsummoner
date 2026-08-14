@@ -12,6 +12,8 @@ var _hp_fill: ImageTexture
 var _mp_fill: ImageTexture
 var _hp_frame: ImageTexture
 var _mp_frame: ImageTexture
+var _xp_fill: ImageTexture
+var _xp_frame: ImageTexture
 
 var _icon_fireball: ImageTexture
 var _icon_icewall: ImageTexture
@@ -22,40 +24,55 @@ var _icon_devorador: ImageTexture
 var _slot_frame: ImageTexture
 var _reticle: ImageTexture
 var _banner_tex: ImageTexture
+var _icon_potion: ImageTexture
 
 var _demon_bar: HBoxContainer
 var _demon_slots: Array[Control] = []
 var _demon_cd_labels: Array[Label] = []
+var _potion_cd_label: Label
 var _banner: Control
 var _banner_label: Label
 var _banner_visible: bool = false
-
 var _choice_panel: Control
+
 var _choice_visible: bool = false
+var _choice_items: Array[String] = []
+var _item_grid: GridContainer = null
+var _choice_slots: Control = null
+var _xp_floating: Label = null
+var _IM = null
 
 var _soul_label: Label
 var _pentagram_label: Label
 
+var timer_label: Label
+
+var _damage_vignette: TextureRect
+
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
+	_IM = get_node("/root/ItemManager")
 	_generate_textures()
 	_build_ui()
 	DatosJuego.alma_cosechada.connect(set_souls)
 
 func _generate_textures() -> void:
-	_hp_fill = _make_globe_fill(96, Color(0.7, 0.05, 0.05))
-	_mp_fill = _make_globe_fill(96, Color(0.05, 0.1, 0.7))
-	_hp_frame = _make_globe_frame(96, false)
-	_mp_frame = _make_globe_frame(96, true)
-	_slot_frame = _make_slot_frame(64)
-	_reticle = _make_gothic_reticle(48)
-	_banner_tex = _make_banner(400, 120)
-	_icon_fireball = _make_icon_fireball(56)
-	_icon_icewall = _make_icon_icewall(56)
-	_icon_icelance = _make_icon_icelance(56)
-	_icon_blackhole = _make_icon_blackhole(56)
-	_icon_segador = _make_icon_segador(56)
-	_icon_devorador = _make_icon_devorador(56)
+	_hp_fill = AssetLoader.load_asset("high/globe_hp_fill_96.png", func(): return _make_globe_fill(96, Color(0.7, 0.05, 0.05)))
+	_mp_fill = AssetLoader.load_asset("high/globe_mp_fill_96.png", func(): return _make_globe_fill(96, Color(0.05, 0.1, 0.7)))
+	_hp_frame = AssetLoader.load_asset("high/globe_hp_frame_96.png", func(): return _make_globe_frame(96, false))
+	_mp_frame = AssetLoader.load_asset("high/globe_mp_frame_96.png", func(): return _make_globe_frame(96, true))
+	_slot_frame = AssetLoader.load_asset("high/slot_frame_64.png", func(): return _make_slot_frame(64))
+	_reticle = AssetLoader.load_asset("critical/crosshair_48.png", func(): return _make_gothic_reticle(48))
+	_banner_tex = AssetLoader.load_asset("high/banner_400x120.png", func(): return _make_banner(400, 120))
+	_icon_fireball = AssetLoader.load_asset("critical/fireball_56.png", func(): return _make_icon_fireball(56))
+	_icon_icewall = AssetLoader.load_asset("critical/icewall_56.png", func(): return _make_icon_icewall(56))
+	_icon_icelance = AssetLoader.load_asset("critical/icelance_56.png", func(): return _make_icon_icelance(56))
+	_icon_blackhole = AssetLoader.load_asset("critical/blackhole_56.png", func(): return _make_icon_blackhole(56))
+	_icon_segador = AssetLoader.load_asset("critical/segador_56.png", func(): return _make_icon_segador(56))
+	_icon_devorador = AssetLoader.load_asset("critical/devorador_56.png", func(): return _make_icon_devorador(56))
+	_icon_potion = AssetLoader.load_asset("critical/potion_56.png", func(): return _make_icon_potion(56))
+	_xp_fill = AssetLoader.load_asset("high/xp_fill_320x14.png", func(): return _make_xp_fill(320, 14))
+	_xp_frame = AssetLoader.load_asset("high/xp_frame_320x14.png", func(): return _make_xp_frame(320, 14))
 
 func _make_globe_fill(size: int, col: Color) -> ImageTexture:
 	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
@@ -313,6 +330,37 @@ func _make_icon_devorador(s: int) -> ImageTexture:
 				img.set_pixel(x, y, Color(0.7 * glow, 0.15 * glow, 1.0 * glow, 0.8))
 	return ImageTexture.create_from_image(img)
 
+func _make_icon_potion(s: int) -> ImageTexture:
+	var img := Image.create(s, s, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var cx := s / 2
+	var cy := s / 2
+	var bg_r := s / 2 - 2
+	for y in s:
+		for x in s:
+			var dx := x - cx
+			var dy := y - cy
+			var dist := sqrt(dx * dx + dy * dy)
+			if dist <= bg_r:
+				var edge := dist / bg_r
+				var r := 0.1 + 0.15 * (1.0 - edge)
+				var g := 0.35 + 0.45 * (1.0 - edge)
+				var b := 0.1 + 0.15 * (1.0 - edge)
+				img.set_pixel(x, y, Color(r, g, b, 0.9))
+			elif dist <= bg_r + 2:
+				var t := (dist - bg_r) / 2.0
+				img.set_pixel(x, y, Color(0.08 * (1.0 - t), 0.2 * (1.0 - t), 0.08 * (1.0 - t), 0.5 * (1.0 - t)))
+	var cross_w := 4
+	var cross_h := int(s * 0.45)
+	var cx2 := cx
+	for y in range(cx2 - cross_h / 2, cx2 + cross_h / 2):
+		for x in range(cx2 - cross_w / 2, cx2 + cross_w / 2):
+			img.set_pixel(x, y, Color(0.9, 0.95, 0.9, 0.95))
+	for y in range(cx2 - cross_w / 2, cx2 + cross_w / 2):
+		for x in range(cx2 - cross_h / 2, cx2 + cross_h / 2):
+			img.set_pixel(x, y, Color(0.9, 0.95, 0.9, 0.95))
+	return ImageTexture.create_from_image(img)
+
 func _make_gothic_reticle(s: int) -> ImageTexture:
 	var img := Image.create(s, s, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
@@ -435,7 +483,7 @@ func _build_ui() -> void:
 	add_child(element_label)
 
 	_soul_label = Label.new()
-	_soul_label.text = "ALMAS: 0/10"
+	_soul_label.text = "ALMAS: 0/" + str(DatosJuego.REQUISITO_DEVORADOR)
 	_soul_label.add_theme_font_size_override("font_size", 11)
 	_soul_label.add_theme_color_override("font_color", Color(0.6, 0.2, 0.8, 0.85))
 	_soul_label.position = Vector2(margin + gs + 10, margin + gs * 2 + 8 + gs + 2)
@@ -461,29 +509,12 @@ func _build_ui() -> void:
 	xp_bar = TextureProgressBar.new()
 	xp_bar.value = 0
 	xp_bar.max_value = 5
-	xp_bar.size = Vector2(320, 14)
+	xp_bar.texture_progress = _xp_fill
+	xp_bar.texture_over = _xp_frame
 	xp_bar.fill_mode = 0
+	xp_bar.size = Vector2(320, 14)
 	xp_bar.set_anchors_preset(Control.PRESET_CENTER, false)
 	xp_bar.position = Vector2(-160, -300)
-	var xp_bg := StyleBoxFlat.new()
-	xp_bg.bg_color = Color(0.08, 0.06, 0.1, 0.7)
-	xp_bg.border_width_left = 1
-	xp_bg.border_width_top = 1
-	xp_bg.border_width_right = 1
-	xp_bg.border_width_bottom = 1
-	xp_bg.border_color = Color(0.3, 0.2, 0.4, 0.6)
-	xp_bg.corner_radius_top_left = 0
-	xp_bg.corner_radius_top_right = 0
-	xp_bg.corner_radius_bottom_right = 0
-	xp_bg.corner_radius_bottom_left = 0
-	var xp_fill := StyleBoxFlat.new()
-	xp_fill.bg_color = Color(0.5, 0.2, 0.7, 0.9)
-	xp_fill.corner_radius_top_left = 0
-	xp_fill.corner_radius_top_right = 0
-	xp_fill.corner_radius_bottom_right = 0
-	xp_fill.corner_radius_bottom_left = 0
-	xp_bar.add_theme_stylebox_override("background", xp_bg)
-	xp_bar.add_theme_stylebox_override("fill", xp_fill)
 	add_child(xp_bar)
 
 	xp_label = Label.new()
@@ -495,6 +526,18 @@ func _build_ui() -> void:
 	xp_label.size = Vector2(80, 14)
 	xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	add_child(xp_label)
+
+	_xp_floating = Label.new()
+	_xp_floating.text = ""
+	_xp_floating.add_theme_font_size_override("font_size", 14)
+	_xp_floating.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
+	_xp_floating.add_theme_color_override("font_shadow_color", Color(0.3, 0.2, 0.0, 0.8))
+	_xp_floating.add_theme_constant_override("shadow_outline_size", 2)
+	_xp_floating.set_anchors_preset(Control.PRESET_CENTER, false)
+	_xp_floating.position = Vector2(5, -315)
+	_xp_floating.size = Vector2(100, 16)
+	_xp_floating.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	add_child(_xp_floating)
 
 	# gothic crosshair reticle
 	var reticle_node := TextureRect.new()
@@ -534,6 +577,8 @@ func _build_ui() -> void:
 
 	_build_demon_bar()
 	_build_choice_panel()
+	_build_item_grid()
+	_build_damage_vignette()
 
 func _build_demon_bar() -> void:
 	var spell_icons := [_icon_fireball, _icon_icewall, _icon_icelance, _icon_blackhole]
@@ -553,22 +598,44 @@ func _build_demon_bar() -> void:
 		slot.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		slot.size = Vector2(64, 64)
 		slot.custom_minimum_size = Vector2(64, 64)
-
-		var icon := TextureRect.new()
-		icon.texture = spell_icons[i]
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.position = Vector2(4, 4)
-		icon.size = Vector2(56, 56)
-		slot.add_child(icon)
-
-		var key_label := Label.new()
-		key_label.text = spell_keys[i]
-		key_label.add_theme_font_size_override("font_size", 9)
-		key_label.add_theme_color_override("font_color", Color(0.6, 0.5, 0.4, 0.7))
-		key_label.position = Vector2(50, 2)
-		slot.add_child(key_label)
-
+		if i == 0:
+			var icon := TextureRect.new()
+			icon.texture = _icon_potion
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.position = Vector2(4, 4)
+			icon.size = Vector2(56, 56)
+			slot.add_child(icon)
+			var key_label := Label.new()
+			key_label.text = "1"
+			key_label.add_theme_font_size_override("font_size", 9)
+			key_label.add_theme_color_override("font_color", Color(0.6, 0.5, 0.4, 0.7))
+			key_label.position = Vector2(50, 2)
+			slot.add_child(key_label)
+			_potion_cd_label = Label.new()
+			_potion_cd_label.text = ""
+			_potion_cd_label.add_theme_font_size_override("font_size", 16)
+			_potion_cd_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3, 0.9))
+			_potion_cd_label.set_anchors_preset(Control.PRESET_CENTER, false)
+			_potion_cd_label.position = Vector2(12, 20)
+			_potion_cd_label.size = Vector2(40, 24)
+			_potion_cd_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			_potion_cd_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			slot.add_child(_potion_cd_label)
+		else:
+			var icon := TextureRect.new()
+			icon.texture = spell_icons[i]
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.position = Vector2(4, 4)
+			icon.size = Vector2(56, 56)
+			slot.add_child(icon)
+			var key_label := Label.new()
+			key_label.text = spell_keys[i]
+			key_label.add_theme_font_size_override("font_size", 9)
+			key_label.add_theme_color_override("font_color", Color(0.6, 0.5, 0.4, 0.7))
+			key_label.position = Vector2(50, 2)
+			slot.add_child(key_label)
 		_demon_bar.add_child(slot)
 
 	for i in 2:
@@ -578,7 +645,6 @@ func _build_demon_bar() -> void:
 		slot.size = Vector2(64, 64)
 		slot.custom_minimum_size = Vector2(64, 64)
 		_demon_slots.append(slot)
-
 		var icon := TextureRect.new()
 		icon.texture = demon_icons[i]
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -586,14 +652,12 @@ func _build_demon_bar() -> void:
 		icon.position = Vector2(4, 4)
 		icon.size = Vector2(56, 56)
 		slot.add_child(icon)
-
 		var name_label := Label.new()
 		name_label.text = demon_names[i]
 		name_label.add_theme_font_size_override("font_size", 9)
 		name_label.add_theme_color_override("font_color", Color(0.6, 0.5, 0.4, 0.7))
 		name_label.position = Vector2(4, 2)
 		slot.add_child(name_label)
-
 		var cd_label := Label.new()
 		cd_label.text = ""
 		cd_label.add_theme_font_size_override("font_size", 16)
@@ -605,102 +669,120 @@ func _build_demon_bar() -> void:
 		cd_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		slot.add_child(cd_label)
 		_demon_cd_labels.append(cd_label)
-
 		_demon_bar.add_child(slot)
 
 func _build_choice_panel() -> void:
 	_choice_panel = Control.new()
 	_choice_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_choice_panel.visible = false
-
 	var overlay := ColorRect.new()
 	overlay.color = Color(0, 0, 0, 0.7)
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_choice_panel.add_child(overlay)
-
 	var panel := PanelContainer.new()
 	panel.set_anchors_preset(Control.PRESET_CENTER, false)
-	panel.position = Vector2(-180, -120)
-	panel.size = Vector2(360, 240)
-	var panel_bg := StyleBoxFlat.new()
-	panel_bg.bg_color = Color(0.08, 0.06, 0.1, 0.95)
-	panel_bg.border_width_left = 2
-	panel_bg.border_width_top = 2
-	panel_bg.border_width_right = 2
-	panel_bg.border_width_bottom = 2
-	panel_bg.border_color = Color(0.4, 0.2, 0.5, 0.8)
-	panel_bg.corner_radius_top_left = 0
-	panel_bg.corner_radius_top_right = 0
-	panel_bg.corner_radius_bottom_right = 0
-	panel_bg.corner_radius_bottom_left = 0
-	panel.add_theme_stylebox_override("panel", panel_bg)
+	panel.position = Vector2(-180, -100)
+	panel.size = Vector2(360, 280)
+	var panel_tex := AssetLoader.load_asset("medium/upgrade_panel_360x280.png")
+	if panel_tex:
+		var panel_bg := StyleBoxTexture.new()
+		panel_bg.texture = panel_tex
+		panel_bg.modulate_color = Color(1, 1, 1, 0.95)
+		panel.add_theme_stylebox_override("panel", panel_bg)
 	_choice_panel.add_child(panel)
-
 	var title := Label.new()
-	title.text = "MEJORA"
-	title.add_theme_font_size_override("font_size", 18)
+	title.text = "ELIGE UN ITEM"
+	title.add_theme_font_size_override("font_size", 16)
 	title.add_theme_color_override("font_color", Color(0.7, 0.5, 0.9))
 	title.set_anchors_preset(Control.PRESET_CENTER, false)
-	title.position = Vector2(-40, -95)
-	title.size = Vector2(80, 24)
+	title.position = Vector2(-80, -90)
+	title.size = Vector2(160, 24)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_choice_panel.add_child(title)
-
-	var stats := [
-		["FIRE", "Daño de Fuego +5", Color(1, 0.4, 0.05)],
-		["ICE", "Daño de Hielo +5", Color(0.3, 0.7, 1.0)],
-		["HP", "Vida +20", Color(0.8, 0.1, 0.1)],
-		["MANA", "Maná +20", Color(0.1, 0.1, 0.8)],
-		["REGEN", "Regen Maná +1", Color(0.4, 0.8, 0.4)],
-	]
-
-	for i in stats.size():
-		var key: String = stats[i][0]
-		var desc: String = stats[i][1]
-		var col: Color = stats[i][2]
-
-		var btn := TextureButton.new()
-		btn.texture_normal = _make_upgrade_btn(320, 32, "normal")
-		btn.texture_hover = _make_upgrade_btn(320, 32, "hover")
-		btn.texture_pressed = _make_upgrade_btn(320, 32, "pressed")
-		btn.size = Vector2(320, 32)
-		btn.custom_minimum_size = Vector2(320, 32)
-		btn.set_anchors_preset(Control.PRESET_CENTER, false)
-		btn.position = Vector2(-160, -55 + i * 38)
-		btn.set_meta("stat", key)
-		btn.pressed.connect(_on_upgrade_chosen.bind(btn))
-		_choice_panel.add_child(btn)
-
-		var lbl := Label.new()
-		lbl.text = desc
-		lbl.add_theme_font_size_override("font_size", 13)
-		lbl.add_theme_color_override("font_color", col)
-		lbl.set_anchors_preset(Control.PRESET_CENTER, false)
-		lbl.position = Vector2(-140, -55 + i * 38 + 5)
-		lbl.size = Vector2(280, 22)
-		_choice_panel.add_child(lbl)
-
+	_choice_slots = Control.new()
+	_choice_slots.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_choice_panel.add_child(_choice_slots)
 	add_child(_choice_panel)
+
+	timer_label = Label.new()
+	timer_label.text = "0:00"
+	timer_label.add_theme_font_size_override("font_size", 22)
+	timer_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.9))
+	timer_label.add_theme_color_override("font_shadow_color", Color(0.1, 0.0, 0.1, 0.8))
+	timer_label.add_theme_constant_override("shadow_offset_x", 1)
+	timer_label.add_theme_constant_override("shadow_offset_y", 1)
+	timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	timer_label.position = Vector2(get_viewport().size.x * 0.5 - 50, 55)
+	timer_label.size = Vector2(100, 25)
+	add_child(timer_label)
+
+func _build_item_grid() -> void:
+	_item_grid = GridContainer.new()
+	_item_grid.columns = 5
+	_item_grid.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	_item_grid.position = Vector2(-280, -180)
+	_item_grid.size = Vector2(270, 110)
+	_item_grid.add_theme_constant_override("h_separation", 4)
+	_item_grid.add_theme_constant_override("v_separation", 4)
+	add_child(_item_grid)
+
+func _item_color(id: String) -> Color:
+	match id:
+		"dented_souls":   return Color(0.8, 0.0, 0.0)
+		"ghost_projectile":return Color(0.2, 0.4, 0.8)
+		"necro_cloud":    return Color(0.4, 0.0, 0.6)
+		"blood_heart":    return Color(0.8, 0.0, 0.2)
+		"arcane_battery": return Color(1.0, 0.8, 0.0)
+		"wind_boots":     return Color(0.2, 0.8, 0.4)
+		"shadow_armor":   return Color(0.4, 0.4, 0.6)
+		"soul_magnet":    return Color(1.0, 0.6, 0.0)
+		"old_grimoire":   return Color(0.6, 0.4, 0.2)
+		"xp_gem":         return Color(0.0, 0.8, 1.0)
+	return Color(0.3, 0.3, 0.3)
+
+func update_item_grid() -> void:
+	if _item_grid == null:
+		return
+	for child in _item_grid.get_children():
+		child.queue_free()
+	var cols: Array[String] = ["dented_souls","ghost_projectile","necro_cloud","blood_heart","arcane_battery",
+		"wind_boots","shadow_armor","soul_magnet","old_grimoire","xp_gem"]
+	for id in cols:
+		var lv = _IM.get_level(id) if _IM != null else 0
+		var slot := ColorRect.new()
+		slot.color = _item_color(id) if lv > 0 else Color(0.1, 0.1, 0.1, 0.4)
+		slot.size = Vector2(48, 48)
+		slot.custom_minimum_size = Vector2(48, 48)
+		_item_grid.add_child(slot)
+		var lbl := Label.new()
+		lbl.text = str(lv) if lv > 0 else ""
+		lbl.add_theme_font_size_override("font_size", 14)
+		lbl.add_theme_color_override("font_color", Color.WHITE)
+		lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
+		lbl.add_theme_constant_override("shadow_outline_size", 1)
+		lbl.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+		lbl.position = Vector2(-16, -16)
+		lbl.size = Vector2(16, 16)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		slot.add_child(lbl)
+
+func _on_item_chosen(item_id: String) -> void:
+	var player := get_parent()
+	if player.has_method("apply_upgrade"):
+		player.apply_upgrade(item_id)
+	_choice_panel.visible = false
+	_choice_visible = false
+	get_tree().paused = false
+	update_item_grid()
 
 func _input(event: InputEvent) -> void:
 	if not _choice_visible:
 		return
-	var stat_map := {
-		"upgrade_slot_1": "FIRE",
-		"upgrade_slot_2": "ICE",
-		"upgrade_slot_3": "HP",
-		"upgrade_slot_4": "MANA",
-		"upgrade_slot_5": "REGEN",
-	}
-	for action in stat_map:
-		if event.is_action_pressed(action):
-			var stat: String = stat_map[action]
-			var player := get_parent()
-			if player.has_method("apply_upgrade"):
-				player.apply_upgrade(stat)
-			_choice_panel.visible = false
-			_choice_visible = false
-			get_tree().paused = false
+	var keys := ["upgrade_slot_1", "upgrade_slot_2", "upgrade_slot_3"]
+	for i in keys.size():
+		if event.is_action_pressed(keys[i]) and i < _choice_items.size():
+			_on_item_chosen(_choice_items[i])
+			update_item_grid()
 			return
 
 func _make_upgrade_btn(w: int, h: int, state: String) -> ImageTexture:
@@ -730,6 +812,7 @@ func _make_upgrade_btn(w: int, h: int, state: String) -> ImageTexture:
 	return ImageTexture.create_from_image(img)
 
 func _on_upgrade_chosen(btn: TextureButton) -> void:
+	AudioManager.play_click()
 	var stat: String = btn.get_meta("stat")
 	var player := get_parent()
 	if player.has_method("apply_upgrade"):
@@ -755,10 +838,49 @@ func set_demon_cooldown(slot: int, seconds: float) -> void:
 		label.text = str(ceili(seconds))
 		label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3, 0.9))
 
+func _build_damage_vignette() -> void:
+	_damage_vignette = TextureRect.new()
+	_damage_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_damage_vignette.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_damage_vignette.stretch_mode = TextureRect.STRETCH_SCALE
+	_damage_vignette.modulate = Color(1, 1, 1, 0)
+	_damage_vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var img := Image.create(256, 256, false, Image.FORMAT_RGBA8)
+	for x in 256:
+		for y in 256:
+			var dx := absf(x - 128) / 128.0
+			var dy := absf(y - 128) / 128.0
+			var dist := maxf(dx, dy)
+			var alpha := clampf((dist - 0.6) / 0.4, 0.0, 0.8)
+			img.set_pixel(x, y, Color(1, 0, 0, alpha))
+	_damage_vignette.texture = ImageTexture.create_from_image(img)
+	add_child(_damage_vignette)
+
+func show_damage_vignette() -> void:
+	if not is_inside_tree():
+		return
+	_damage_vignette.modulate = Color(1, 1, 1, 0.5)
+	var tw := create_tween()
+	tw.tween_property(_damage_vignette, "modulate:a", 0.0, 0.6)
+
+func set_potion_cooldown(seconds: float) -> void:
+	if not is_instance_valid(_potion_cd_label):
+		return
+	if seconds <= 0.0:
+		_potion_cd_label.text = "✓"
+		_potion_cd_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3, 0.9))
+	else:
+		_potion_cd_label.text = str(ceili(seconds))
+		_potion_cd_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3, 0.9))
+
 func set_pentagram_progress(progress: int, total: int) -> void:
 	if progress <= 0:
 		_pentagram_label.text = ""
 		return
+	if progress < total:
+		AudioManager.play_pentagram_tick()
+	else:
+		AudioManager.play_pentagram_complete()
 	var runes := ""
 	for i in total:
 		runes += "⬟ " if i < progress else "○ "
@@ -781,7 +903,7 @@ func set_level(lv: int) -> void:
 	level_label.text = "LV " + str(lv)
 
 func set_xp(xp: int, needed: int) -> void:
-	print("HUD set_xp: xp=", xp, " needed=", needed)
+	AudioManager.play_xp_gain()
 	xp_bar.max_value = needed
 	xp_label.text = str(xp) + " / " + str(needed) + " XP"
 	if xp_bar.has_meta("xp_tween"):
@@ -790,10 +912,25 @@ func set_xp(xp: int, needed: int) -> void:
 	var tween := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(xp_bar, "value", xp, 0.3)
 	xp_bar.set_meta("xp_tween", tween)
+	if _xp_floating:
+		_xp_floating.text = "+" + str(xp) + " XP"
+		_xp_floating.modulate = Color(1, 1, 1, 1)
+		var timer := Timer.new()
+		timer.one_shot = true
+		timer.wait_time = 0.8
+		timer.timeout.connect(func():
+			if is_instance_valid(_xp_floating):
+				var ftween = create_tween()
+				ftween.tween_property(_xp_floating, "modulate:a", 0.0, 0.4)
+			timer.queue_free()
+		)
+		add_child(timer)
+		timer.start()
 
 func show_level_up(_player: Node = null) -> void:
 	if _banner_visible:
 		return
+	AudioManager.play_level_up()
 	_banner_visible = true
 	_banner.visible = true
 	_banner.scale = Vector2(0.5, 0.5)
@@ -811,9 +948,113 @@ func show_level_up(_player: Node = null) -> void:
 	await fade_tween.finished
 	_banner.visible = false
 	_banner_visible = false
+	update_item_grid()
 
 	if _player and _player.has_method("apply_upgrade"):
 		await get_tree().create_timer(0.3).timeout
+		_refresh_choice_items()
 		get_tree().paused = true
 		_choice_panel.visible = true
 		_choice_visible = true
+
+func show_event_banner(text: String, color: Color) -> void:
+	if _banner_visible:
+		return
+	_banner_visible = true
+	if _banner_label == null:
+		return
+	_banner_label.text = text
+	_banner_label.add_theme_color_override("font_color", color)
+	_banner.visible = true
+	_banner.scale = Vector2(0.5, 0.5)
+	_banner.modulate = Color(1, 1, 1, 0)
+	var tween := create_tween().set_parallel()
+	tween.tween_property(_banner, "scale", Vector2(1.2, 1.2), 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(_banner, "modulate", Color(1, 1, 1, 1), 0.3)
+	tween.chain().tween_property(_banner, "scale", Vector2(1.0, 1.0), 0.1)
+	await get_tree().create_timer(3.0).timeout
+	var fade_tween := create_tween()
+	fade_tween.tween_property(_banner, "modulate", Color(1, 1, 1, 0), 0.4)
+	await fade_tween.finished
+	_banner.visible = false
+	_banner_visible = false
+
+func set_timer(elapsed: float, total: float) -> void:
+	var mins = int(elapsed) / 60
+	var secs = int(elapsed) % 60
+	timer_label.text = str(mins) + ":" + str(secs).pad_zeros(2)
+	var remaining = maxf(total - elapsed, 0.0)
+	if remaining < 60.0:
+		timer_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.1))
+
+func _make_xp_fill(w: int, h: int) -> ImageTexture:
+	var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
+	for y in h:
+		for x in w:
+			if y < 1 or y >= h - 1:
+				img.set_pixel(x, y, Color(0, 0, 0, 0))
+			else:
+				var t = float(x) / w
+				var r = 0.5 + 0.2 * sin(t * PI)
+				var col = Color(r * 0.9, r * 0.15, r * 0.7, 0.95)
+				img.set_pixel(x, y, col)
+	return ImageTexture.create_from_image(img)
+
+func _make_xp_frame(w: int, h: int) -> ImageTexture:
+	var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	for y in h:
+		for x in w:
+			if x < 1 or x >= w - 1 or y < 1 or y >= h - 1:
+				img.set_pixel(x, y, Color(0.25, 0.15, 0.3, 0.9))
+			elif y == 2 or y == h - 3:
+				img.set_pixel(x, y, Color(0.4, 0.25, 0.5, 0.5))
+	return ImageTexture.create_from_image(img)
+
+func _refresh_choice_items() -> void:
+	if _IM == null:
+		return
+	var all_ids: Array = _IM.ITEMS.keys()
+	var available: Array[String] = []
+	for id in all_ids:
+		if _IM.get_level(id) < _IM.ITEMS[id]["max_lv"]:
+			available.append(id)
+	if available.is_empty():
+		available = all_ids.duplicate()
+	available.shuffle()
+	_choice_items = available.slice(0, 3)
+	for i in _choice_items.size():
+		var id = _choice_items[i]
+		var info = _IM.ITEMS[id]
+		var cur_lv = _IM.get_level(id)
+		var lv_text = "Nv." + str(cur_lv) + " → " + str(cur_lv + 1) if cur_lv > 0 else "Nuevo"
+		var display = info["name"] + " (" + lv_text + ")"
+		var col := Color(0.9, 0.4, 0.0) if info["type"] == "weapon" else Color(0.3, 0.7, 1.0)
+		var btn := TextureButton.new()
+		btn.texture_normal = AssetLoader.load_asset("buttons/upgrade_320x50_normal.png", func(): return _make_upgrade_btn(320, 50, "normal"))
+		btn.texture_hover = AssetLoader.load_asset("buttons/upgrade_320x50_hover.png", func(): return _make_upgrade_btn(320, 50, "hover"))
+		btn.texture_pressed = AssetLoader.load_asset("buttons/upgrade_320x50_pressed.png", func(): return _make_upgrade_btn(320, 50, "pressed"))
+		btn.size = Vector2(320, 50)
+		btn.custom_minimum_size = Vector2(320, 50)
+		btn.set_anchors_preset(Control.PRESET_CENTER, false)
+		btn.position = Vector2(-160, -55 + i * 58)
+		btn.set_meta("item_id", id)
+		btn.pressed.connect(_on_item_chosen.bind(id))
+		btn.mouse_entered.connect(AudioManager.play_hover)
+		_choice_slots.add_child(btn)
+		var lbl := Label.new()
+		lbl.text = display
+		lbl.add_theme_font_size_override("font_size", 14)
+		lbl.add_theme_color_override("font_color", col)
+		lbl.set_anchors_preset(Control.PRESET_CENTER, false)
+		lbl.position = Vector2(-140, -55 + i * 58 + 3)
+		lbl.size = Vector2(280, 18)
+		_choice_slots.add_child(lbl)
+		var dsc := Label.new()
+		dsc.text = info["desc"]
+		dsc.add_theme_font_size_override("font_size", 10)
+		dsc.add_theme_color_override("font_color", Color(0.6, 0.5, 0.7))
+		dsc.set_anchors_preset(Control.PRESET_CENTER, false)
+		dsc.position = Vector2(-140, -55 + i * 58 + 22)
+		dsc.size = Vector2(280, 14)
+		_choice_slots.add_child(dsc)
