@@ -28,7 +28,7 @@ Demon Summoner es un juego de supervivencia de hordas en arena. Controlas a un m
 - **Canalización de hechizos**: mantén Shift + clic derecho y dibuja el gesto con el ratón
 - Pool de proyectiles reutilizado (140 instancias) — sin lag con hordas enormes
 
-### 💀 Sistema de Items VS
+### Sistema de Items VS
 Al subir de nivel eliges entre 3 items aleatorios (máximo nivel 10):
 
 | Tipo | Item | Efecto por nivel |
