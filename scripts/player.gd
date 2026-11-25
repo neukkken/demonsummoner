@@ -1063,6 +1063,9 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.keycode == KEY_TAB and event.pressed and not event.echo and _mouse_captured:
 		_use_potion()
 		return
+	if event is InputEventKey and event.keycode == KEY_E and event.pressed and not event.echo:
+		_try_interact()
+		return
 	if event is InputEventKey and event.keycode == KEY_F and event.pressed and not event.echo:
 		current_element = "NECROMANCIA"
 		print("Elemento: NECROMANCIA")
@@ -1190,6 +1193,19 @@ func _process(delta: float) -> void:
 		else:
 			_wand_aim = _wand_aim.lerp(Vector2.ZERO, delta * 8.0)
 			_wand.rotation_degrees = _wand_base_rot + Vector3(-_wand_aim.y, _wand_aim.x, 0)
+
+func _try_interact() -> void:
+	var interactables = get_tree().get_nodes_in_group("interactables")
+	var closest: Node = null
+	var min_dist: float = 3.5
+	for obj in interactables:
+		if is_instance_valid(obj) and obj is Node3D:
+			var d = global_position.distance_to(obj.global_position)
+			if d < min_dist:
+				min_dist = d
+				closest = obj
+	if closest and closest.has_method("interact"):
+		closest.interact(self)
 
 func _use_potion() -> void:
 	if _potion_cooldown > 0.0:

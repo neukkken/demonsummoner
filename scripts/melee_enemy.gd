@@ -133,64 +133,8 @@ func _build_skel_path(from: Node, to: Node) -> String:
 func _load_anims() -> void:
 	if _anim_player.has_animation_library(""):
 		_anim_player.remove_animation_library("")
-	var lib = AnimationLibrary.new()
+	var lib = AssetLoader.get_skeleton_anim_library(_skel_path)
 	_anim_player.add_animation_library("", lib)
-	var paths = {
-		"idle": "res://models/skeleton/anim/Skeleton_Idle.fbx",
-		"walk": "res://models/skeleton/anim/Skeleton_Walking.fbx",
-		"attack": "res://models/skeleton/anim/Steleton_Attack.fbx",
-		"die": "res://models/skeleton/anim/Skeleton_Dying.fbx",
-	}
-	var loaded = 0
-	for name in paths:
-		var res = load(paths[name])
-		var anim: Animation = null
-		if res is Animation:
-			anim = res
-		elif res is PackedScene:
-			var inst = res.instantiate()
-			var ap = inst.find_child("AnimationPlayer", true, false) as AnimationPlayer
-			if ap:
-				var anim_names = ap.get_animation_list()
-				if anim_names.size() > 0:
-					anim = ap.get_animation(anim_names[0])
-			inst.queue_free()
-		if anim:
-			anim = anim.duplicate()
-			_strip_position_tracks(anim)
-			_remap_bone_tracks(anim)
-			anim.loop_mode = Animation.LOOP_LINEAR if name in ["idle", "walk"] else Animation.LOOP_NONE
-			lib.add_animation(name, anim)
-			loaded += 1
-	if loaded == 0:
-		print("ERROR: Ninguna animacion cargada para ", model_path)
-
-func _remap_bone_tracks(anim: Animation) -> void:
-	if _skel == null:
-		return
-	var t = anim.get_track_count() - 1
-	while t >= 0:
-		var pstr = str(anim.track_get_path(t))
-		var col_pos = pstr.find(":")
-		if col_pos == -1:
-			t -= 1
-			continue
-		var bone_name = pstr.substr(col_pos + 1)
-		var mapped = _BONE_MAP.get(bone_name, "")
-		if mapped == "" or mapped == "spine":
-			anim.remove_track(t)
-			t -= 1
-			continue
-		var new_p = NodePath(_skel_path + ":" + mapped)
-		anim.track_set_path(t, new_p)
-		t -= 1
-
-func _strip_position_tracks(anim: Animation) -> void:
-	var i = anim.get_track_count() - 1
-	while i >= 0:
-		if anim.track_get_type(i) == Animation.TYPE_POSITION_3D:
-			anim.remove_track(i)
-		i -= 1
 
 func _setup_health_bar() -> void:
 	var bar_script := preload("res://scripts/health_bar_3d.gd")
@@ -387,6 +331,8 @@ func _play_anim(name: String) -> void:
 		_current_anim = name
 		_attacking = name == "attack"
 
+var _nav_tick: float = 0.0
+
 func _physics_process(_delta: float) -> void:
 	if not _is_alive or _dying or _ice_block or _is_paralizado:
 		return
@@ -399,7 +345,10 @@ func _physics_process(_delta: float) -> void:
 	var horizontal_velocity = Vector3.ZERO
 
 	if moving:
-		_nav.target_position = target.global_position
+		_nav_tick -= _delta
+		if _nav_tick <= 0.0:
+			_nav_tick = randf_range(0.2, 0.35) # Desincronizado entre enemigos
+			_nav.target_position = target.global_position
 		var next_pos = _nav.get_next_path_position()
 		var to_next = next_pos - global_position
 		to_next.y = 0

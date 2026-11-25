@@ -25,11 +25,6 @@ func _ready():
 	_mesh_instance.mesh = box
 	_mesh_instance.material_override = _mat
 	add_child(_mesh_instance)
-	var light = OmniLight3D.new()
-	light.light_color = Color(1.0, 0.05, 0.02)
-	light.light_energy = 3.0
-	light.omni_range = 5.0
-	add_child(light)
 	var col = CollisionShape3D.new()
 	var csphere = SphereShape3D.new()
 	csphere.radius = 0.5

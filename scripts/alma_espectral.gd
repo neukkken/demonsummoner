@@ -51,15 +51,6 @@ func _setup_visual():
 	_mesh_inst.material_override = _mesh_mat
 	add_child(_mesh_inst)
 
-	var light = OmniLight3D.new()
-	match _gem_type:
-		"xp": light.light_color = Color(1.0, 0.95, 0.5)
-		"big": light.light_color = Color(0.3, 0.6, 1)
-		"heal": light.light_color = Color(0.2, 1, 0.4)
-	light.light_energy = 4.0
-	light.omni_range = 8.0
-	add_child(light)
-
 	var col = CollisionShape3D.new()
 	var csphere = SphereShape3D.new()
 	csphere.radius = 0.8

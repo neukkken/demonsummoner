@@ -18,18 +18,21 @@
 - [ ] Sistema de evolución de armas (nivel 8 → desbloquear poder mejorado)
 
 ## UI
-- [ ] Menú de pausa: reactivar guía de invocaciones (segador + devorador)
+- [x] Guía y controles accesibles (menú principal y pausa)
 - [ ] Indicador de oleada especial (horda/miniboss)
 
 ## Audio
 - [ ] Música de fondo procedural (loop con senos + ruido)
 
 ## Bugs conocidos
-- [ ] Las gemas azules (big) spawnean pero nadie las crea actualmente
+- [x] Las gemas azules (big) ahora se generan y expulsan desde cofres de tesoro
 
 ## Rendimiento
-- [ ] Pool de MeshInstance3D para partículas y efectos (reducir lag con muchos enemigos)
-- [ ] Revisar `fire_blast_effect.tscn` — crea 53 MeshInstance por uso
+- [x] Pool y reutilización de MeshInstance3D y StandardMaterial3D (sin lag en hordas)
+- [x] Revisar `fire_blast_effect.tscn` — optimizado con recursos estáticos compartidos
+- [x] Caché global de animaciones FBX para enemigos humanoides
+- [x] Eliminada sobrecarga de luces OmniLight3D en gemas y suicidas
+- [x] Sustitución de mallas de colisión Trimesh por BoxShape3D ultrarrápido en mazmorras
 
 ## Calidad de vida
 - [ ] Mostrar tiempo de partida al morir (game over)

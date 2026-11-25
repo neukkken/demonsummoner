@@ -149,41 +149,27 @@ func _spawn_trail() -> void:
 			piece.material_override = null
 	)
 
-func _make_impact_mat(col: Color) -> StandardMaterial3D:
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = col
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.emission_enabled = true
-	mat.emission = col
-	mat.emission_energy_multiplier = 4.0
-	return mat
-
 func _spawn_impact() -> void:
 	if not is_inside_tree():
 		return
 	var is_fire := effect_type == "fire"
 	var base_pos := global_position
+	var hit_mat: StandardMaterial3D = _fire_hit if is_fire else _ice_hit
 
-	for i in range(40):
+	for i in range(30):
 		var piece := _get_piece()
 		if piece == null:
 			break
 		var s := randf_range(0.06, 0.22)
 		piece.scale = Vector3(s / 0.12, s / 0.12, s / 0.12)
-		var col: Color
-		if is_fire:
-			var t := randf()
-			col = Color(1, 0.85, 0.15, 1) if t > 0.5 else Color(1, randf_range(0.35, 0.65), 0.0, 1)
-		else:
-			col = Color(0.5, 0.8, 1, 1)
-		piece.material_override = _make_impact_mat(col)
+		piece.material_override = hit_mat
 		piece.global_position = base_pos
 		piece.visible = true
 		var dir := Vector3(randf_range(-1, 1), randf_range(-0.3, 1.2), randf_range(-1, 1)).normalized()
-		var dist := randf_range(1.0, 4.0)
+		var dist := randf_range(1.0, 3.5)
 		var tween := piece.create_tween()
-		tween.tween_property(piece, "global_position", base_pos + dir * dist, 0.7).set_trans(Tween.TRANS_LINEAR)
-		tween.parallel().tween_property(piece, "scale", Vector3.ZERO, 0.7)
+		tween.tween_property(piece, "global_position", base_pos + dir * dist, 0.5).set_trans(Tween.TRANS_LINEAR)
+		tween.parallel().tween_property(piece, "scale", Vector3.ZERO, 0.5)
 		tween.tween_callback(func():
 			if is_instance_valid(piece):
 				piece.visible = false
@@ -192,34 +178,26 @@ func _spawn_impact() -> void:
 		)
 
 	if not is_fire:
-		for i in range(20):
+		for i in range(15):
 			var piece := _get_piece()
 			if piece == null:
 				break
 			var s := randf_range(0.03, 0.08)
 			piece.scale = Vector3(s / 0.12, s / 0.12, s / 0.12)
-			piece.material_override = _make_impact_mat(Color(0.9, 0.95, 1, 0.9))
+			piece.material_override = _ice_shard
 			piece.global_position = base_pos
 			piece.visible = true
 			var dir := Vector3(randf_range(-1, 1), randf_range(-0.5, 1.2), randf_range(-1, 1)).normalized()
-			var dist := randf_range(1.5, 5.0)
+			var dist := randf_range(1.5, 4.0)
 			var tween := piece.create_tween()
-			tween.tween_property(piece, "global_position", base_pos + dir * dist, 0.8).set_trans(Tween.TRANS_LINEAR)
-			tween.parallel().tween_property(piece, "scale", Vector3.ZERO, 0.8)
+			tween.tween_property(piece, "global_position", base_pos + dir * dist, 0.5).set_trans(Tween.TRANS_LINEAR)
+			tween.parallel().tween_property(piece, "scale", Vector3.ZERO, 0.5)
 			tween.tween_callback(func():
 				if is_instance_valid(piece):
 					piece.visible = false
 					piece.scale = Vector3.ONE
 					piece.material_override = null
 			)
-
-	var light := OmniLight3D.new()
-	light.light_color = Color(1, 0.5, 0, 1) if is_fire else Color(0.3, 0.6, 1, 1)
-	light.light_energy = 8.0
-	light.omni_range = 8.0
-	var ltween := create_tween()
-	ltween.tween_property(light, "light_energy", 0.0, 0.6)
-	ltween.tween_callback(light.queue_free)
 
 func _on_body_entered(body: Node) -> void:
 	if _dying:

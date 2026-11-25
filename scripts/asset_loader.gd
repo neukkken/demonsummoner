@@ -34,6 +34,89 @@ func load_asset(path: String, fallback: Callable = Callable()) -> Texture2D:
 		return tex
 	return null
 
+var _anim_lib_cache: Dictionary = {}
+
+func get_skeleton_anim_library(skel_path: String) -> AnimationLibrary:
+	if _anim_lib_cache.has(skel_path):
+		return _anim_lib_cache[skel_path]
+
+	var lib = AnimationLibrary.new()
+	var paths = {
+		"idle": "res://models/skeleton/anim/Skeleton_Idle.fbx",
+		"walk": "res://models/skeleton/anim/Skeleton_Walking.fbx",
+		"attack": "res://models/skeleton/anim/Steleton_Attack.fbx",
+		"die": "res://models/skeleton/anim/Skeleton_Dying.fbx",
+	}
+	const BONE_MAP: Dictionary = {
+		"mixamorig_Hips": "spine",
+		"mixamorig_Spine": "spine.001",
+		"mixamorig_Spine1": "spine.002",
+		"mixamorig_Spine2": "spine.003",
+		"mixamorig_Neck": "spine.004",
+		"mixamorig_Head": "spine.005",
+		"mixamorig_HeadTop_End": "spine.006",
+		"mixamorig_LeftShoulder": "shoulder.L",
+		"mixamorig_LeftArm": "upper_arm.L",
+		"mixamorig_LeftForeArm": "forearm.L",
+		"mixamorig_LeftHand": "hand.L",
+		"mixamorig_RightShoulder": "shoulder.R",
+		"mixamorig_RightArm": "upper_arm.R",
+		"mixamorig_RightForeArm": "forearm.R",
+		"mixamorig_RightHand": "hand.R",
+		"mixamorig_LeftUpLeg": "thigh.L",
+		"mixamorig_LeftLeg": "shin.L",
+		"mixamorig_LeftFoot": "foot.L",
+		"mixamorig_LeftToeBase": "toe.L",
+		"mixamorig_RightUpLeg": "thigh.R",
+		"mixamorig_RightLeg": "shin.R",
+		"mixamorig_RightFoot": "foot.R",
+		"mixamorig_RightToeBase": "toe.R",
+	}
+
+	for name in paths:
+		var res = load(paths[name])
+		var anim: Animation = null
+		if res is Animation:
+			anim = res
+		elif res is PackedScene:
+			var inst = res.instantiate()
+			var ap = inst.find_child("AnimationPlayer", true, false) as AnimationPlayer
+			if ap:
+				var anim_names = ap.get_animation_list()
+				if anim_names.size() > 0:
+					anim = ap.get_animation(anim_names[0])
+			inst.queue_free()
+		if anim:
+			anim = anim.duplicate()
+			# Strip position tracks
+			var i = anim.get_track_count() - 1
+			while i >= 0:
+				if anim.track_get_type(i) == Animation.TYPE_POSITION_3D:
+					anim.remove_track(i)
+				i -= 1
+			# Remap bones to target skeleton path
+			var t = anim.get_track_count() - 1
+			while t >= 0:
+				var pstr = str(anim.track_get_path(t))
+				var col_pos = pstr.find(":")
+				if col_pos == -1:
+					t -= 1
+					continue
+				var bone_name = pstr.substr(col_pos + 1)
+				var mapped = BONE_MAP.get(bone_name, "")
+				if mapped == "" or mapped == "spine":
+					anim.remove_track(t)
+					t -= 1
+					continue
+				var new_p = NodePath(skel_path + ":" + mapped)
+				anim.track_set_path(t, new_p)
+				t -= 1
+			anim.loop_mode = Animation.LOOP_LINEAR if name in ["idle", "walk"] else Animation.LOOP_NONE
+			lib.add_animation(name, anim)
+
+	_anim_lib_cache[skel_path] = lib
+	return lib
+
 func _generate_all_placeholders() -> void:
 	# Critical - spell icons
 	_save_if_missing("critical/fireball_56.png", _gen_icon_fireball(56))

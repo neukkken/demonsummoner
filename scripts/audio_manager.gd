@@ -443,9 +443,12 @@ static func play_game_over() -> void:
 		_game_over_stream = _cache("over", 1.2, game_over)
 	_play_2d(_game_over_stream, -2.0)
 
+static var _heal_stream: AudioStreamWAV = null
+
 static func play_heal() -> void:
-	var s = _cache("heal", 0.35, heal)
-	_play_2d(s, -4.0)
+	if _heal_stream == null:
+		_heal_stream = _cache("heal", 0.35, heal)
+	_play_2d(_heal_stream, -4.0)
 
 static func play_grimoire_open() -> void:
 	if _grimoire_stream == null:

@@ -39,6 +39,7 @@ func almas_suficientes() -> bool:
 func obtener_almas() -> int:
 	return almas_cosechadas
 
+var current_dungeon: Node = null
 var _noise: FastNoiseLite = null
 
 func _init_noise() -> void:
@@ -53,6 +54,9 @@ func _init_noise() -> void:
 	_noise.fractal_gain = 0.35 # Micro-detalle suave para que no se vea sintético
 
 func get_height(world_x: float, world_z: float) -> float:
+	if current_dungeon != null and is_instance_valid(current_dungeon) and current_dungeon.has_method("get_floor_height_at"):
+		return current_dungeon.get_floor_height_at(world_x, world_z)
+
 	if _noise == null:
 		_init_noise()
 	

@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.7.0-alpha] - 2026-10-15
+
+### Added
+- **Generador de Ciudadela Gótica Monumental** (`scripts/generador_mapa.gd`):
+  - **Escala Colosal**: Expansión de grilla a 7×7 celdas (~224m × 224m) con celdas de 32m y muros catedralicios de 18 metros de altura (`WALL_HEIGHT = 18.0`), empequeñeciendo intencionadamente al jugador (1.8m) dentro de una sobrecogedora arquitectura dark fantasy.
+  - **3 Pisos de Elevación Extrema**: Tiers de elevación en $Y = 0.0$m (La Gran Nave y Criptas Bajas), $Y = 10.0$m (Bóvedas y Terrazas de Guardia) y $Y = 22.0$m (El Trono del Abismo y Cúspide Demoníaca).
+  - **Columnatas y Nervios de Bóveda**: Columnas ciclópeas de 18m con plintos escalonados, fustes cilíndricos, capiteles góticos, nervios de crucería cruzados en techos y pebeteros de hierro forjado con llamas eternas de 18m de alcance omnidireccional.
+  - **Arcadas Ojivales y Grandes Escaleras**: Puertas de paso de 7m de ancho por 11m de altura con tímpanos de piedra y molduras doradas; escaleras monumentales de 7m de ancho con rampas de colisión de 32° y pretiles de contención.
+  - **Centros Monumentales**:
+    - *Atrio / Spawn Hall*: Doble columnata de 8 titanes de 18m con crucería gótica y sello de obsidiana ceremonial.
+    - *Santuario Demoníaco*: Monolito de obsidiana de 14m con núcleo luminoso amatista a 15m de altura, altar de piedra escalonado y anillo ceremonial de 8 columnas.
+    - *Foso Abisal de Lava*: Caverna de 28m con grieta de magma de 26m × 14m y puente de piedra fortificado central de 7m con pretiles laterales.
+  - **Atmósfera Gótica Acentuada**: Luz de luna azulada con sombras volumétricas y niebla baja (`volumetric_fog`) que desvanece las alturas de las columnas.
+- **Overhaul Integral del HUD Gótico** (`scripts/gothic_hud.gd`):
+  - **Integración Tipográfica Cinzel**: Incorporación sistemática de las fuentes auténticas `CinzelDecorative-Bold.ttf` (títulos, nivel, almas, jefes, atajos) y `Cinzel.ttf` (números de vida/maná, cronómetro, descripciones y barras).
+  - **Orbes de Cristal Esféricos de 100px**: Reemplazo de los círculos planos por orbes volumétricos procedurales con gradiente esférico profundo, caústicas internas, arco especular de cristal curvado e insignias góticas doradas "HP" y "MP".
+  - **Marcos de Relicario en Orbes**: Biseles metálicos biselados de bronce y oro con garras góticas en diagonales y alas de gárgola ornamentales.
+  - **Relicario de Hechizos y Demonios**: Ranuras de 64px con marcos de obsidiana chamfered, filigranas de esquina doradas, sellos de teclas `[1]`, `[2]`, `[3]`, `[4]` y enfriamientos con tipografía de alto contraste.
+  - **Barra de XP Monumental de 380px**: Barra de amatista luminosa con núcleo blanco, marco dorado con remaches y divisiones de progresión al 25%, 50% y 75%.
+  - **Modal de Mejoras Dark Fantasy**:
+    - Ventana modal centrada de 520×360 px con velo oscurecedor amatista.
+    - Título gótico ceremonial `✦ ELEGIR BENDICIÓN ARCANO ✦` y subtítulo explicativo.
+    - 3 Cartas arcanas alargadas (500×74 px) con marco de obsidiana, reborde dorado brillante al hacer hover, icono con ranura de relicario, título en CinzelDecorative, etiqueta de nivel `[ Nv. 1 → 2 ]`, descripción fluida y sello circular de acceso rápido `[1]`, `[2]`, `[3]`.
+  - **Reloj y Estado de Almas**: Cronómetro centrado superior en plata antigua estilo reloj de catedral, contador de almas con glifo `✦ ALMAS: X/Y` y medidor de ritual del pentagrama con runas `⛧ RITUAL: ⬟ ⬟ ○`.
+- **Cofres de Tesoro Interactivos** (`scripts/dungeon_chest.gd`): Modelo 3D procedural con tapa abisagrada animada mediante Tween, prompt flotante `[E] Abrir Cofre`, y recompensas (subida de nivel de item del `ItemManager`, gemas grandes de XP y orbes de curación expulsados físicamente).
+- **Interacción con Tecla E** (`scripts/player.gd`): Soporte para interactuar con cofres y objetos del entorno.
+- **Menú Principal RPG de Fantasía Oscura** (`scripts/main_menu.gd`):
+  - Nuevo fondo panorámico cinematográfico (`sprites/rpg_menu_background.jpg`): Catedral gótica ancestral en ruinas con vórtice de invocación demoníaca, antorchas ardientes y luz de luna azul entrando por vidrieras.
+  - Nuevo logotipo heráldico de Demon Summoner (`sprites/rpg_title_logo.png`): Tipografía gótica en obsidiana con grietas de magma volcánico, filigrana de oro y cuernos demoníacos estilizados.
+  - Shader de resplandor y calor ígneo (`shaders/rpg_title_glow.gdshader`): Destellos dinámicos y pulso respiratorio sobre las runas y magma del logo sin necesidad de chroma key destructivo.
+  - Botones de Menú Gothic Obsidian (`sprites/rpg_button_normal.png`, `hover`, `pressed`): Rediseño vectorial con piedra obsidiana chamfered, doble reborde dorado, remaches de rubí y 9-slice limpio (380×52 px) con 80 px de margen respecto al borde inferior.
+  - Marco de Diálogos y Modales (`sprites/rpg_panel_frame.png`): Placa gótica simétrica de 500×500 px con filigranas de esquina y márgenes de 28 px que elimina el solapamiento de textos sobre ilustraciones.
+  - Rediseño de Ventanas Modales: Títulos con línea divisoria dorada, tarjetas oscuras con bordes de categoría ("⚔️ Movimiento", "🔥 Hechizos", etc.) y botones de cierre amplios (220×44 px) con padding profesional.
+  - Sigilo demoníaco giratorio (`sprites/rpg_sigil.png`) y partículas de ascuas flotantes 2D (`CPUParticles2D`).
+  - Toggle de **Pantalla Completa** y ajustes de volumen con tipografía Cinzel y sliders estilizados.
+  - Hover animado con escala suave en botones y marcadores rúnicos (`✧`).
+
+### Performance
+- **Caché Global de Animaciones FBX** (`scripts/asset_loader.gd`): Eliminado el lag y congelamiento durante el spawn de enemigos; las animaciones FBX se cargan y remapean una sola vez en memoria.
+- **Optimización de GPU**: Eliminada la creación de decenas de `OmniLight3D` en gemas de almas (`scripts/alma_espectral.gd`) y suicidas (`scripts/suicide_enemy.gd`), apoyándose en materiales emisivos y Bloom.
+- **Throttling de Pathfinding**: Actualizaciones de `NavigationAgent3D` reguladas cada 0.25–0.35s en lugar de ejecutarse cada tick de física.
+- **Reutilización de Materiales**: Eliminada la instanciación repetitiva de `StandardMaterial3D` en impactos de proyectiles (`scripts/spell_projectile.gd`) y explosiones (`scripts/fire_blast_effect.gd`).
+- **Física Ligera**: Sustitución de mallas triangulares complejas dinámicas (*Trimesh*) por colisiones primitivas de caja (`BoxShape3D`) y un único horneado de NavMesh al iniciar.
+
 ## [0.6.2-alpha] - 2026-06-12
 
 ### Added

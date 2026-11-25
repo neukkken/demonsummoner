@@ -1,60 +1,60 @@
 extends Node3D
 
+static var _box: BoxMesh = null
+static var _mat_main: StandardMaterial3D = null
+static var _mat_spark: StandardMaterial3D = null
+static var _inited: bool = false
+
+static func _init_resources() -> void:
+	if _inited:
+		return
+	_inited = true
+	_box = BoxMesh.new()
+	_box.size = Vector3(1.0, 1.0, 1.0)
+
+	_mat_main = StandardMaterial3D.new()
+	_mat_main.albedo_color = Color(1, 0.6, 0.05, 0.95)
+	_mat_main.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_mat_main.emission_enabled = true
+	_mat_main.emission = Color(1, 0.6, 0.05)
+	_mat_main.emission_energy_multiplier = 4.0
+
+	_mat_spark = StandardMaterial3D.new()
+	_mat_spark.albedo_color = Color(1, 0.85, 0.2, 1.0)
+	_mat_spark.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_mat_spark.emission_enabled = true
+	_mat_spark.emission = Color(1, 0.85, 0.2)
+	_mat_spark.emission_energy_multiplier = 5.0
+
 func _ready() -> void:
-	for i in range(18):
+	_init_resources()
+	for i in range(16):
 		var piece = MeshInstance3D.new()
 		var s = randf_range(0.12, 0.25)
-		var box = BoxMesh.new()
-		box.size = Vector3(s, s, s)
-		var t = randf()
-		var color = Color(1, 0.85, 0.15, 1) if t > 0.5 else Color(1, randf_range(0.35, 0.6), 0.0, 0.95)
-		var mat = StandardMaterial3D.new()
-		mat.albedo_color = color
-		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		mat.emission_enabled = true
-		mat.emission = color
-		mat.emission_energy_multiplier = 4.0
-		piece.mesh = box
-		piece.material_override = mat
+		piece.mesh = _box
+		piece.scale = Vector3(s, s, s)
+		piece.material_override = _mat_main
 		add_child(piece)
 		var angle = randf_range(0, 360)
 		var dir = Vector3(cos(deg_to_rad(angle)), randf_range(-0.2, 1.0), sin(deg_to_rad(angle))).normalized()
-		var dist = randf_range(1.0, 4.0)
+		var dist = randf_range(1.0, 3.5)
 		var tween = piece.create_tween()
-		tween.tween_property(piece, "position", dir * dist, 0.6).set_trans(Tween.TRANS_LINEAR)
-		tween.parallel().tween_property(mat, "emission", Color(0, 0, 0, 0), 0.6)
-		tween.parallel().tween_property(mat, "albedo_color", Color(0, 0, 0, 0), 0.6)
-		tween.tween_callback(piece.queue_free)
+		tween.tween_property(piece, "position", dir * dist, 0.5).set_trans(Tween.TRANS_LINEAR)
+		tween.parallel().tween_property(piece, "scale", Vector3.ZERO, 0.5)
 
-	for i in range(10):
+	for i in range(8):
 		var piece = MeshInstance3D.new()
 		var s = randf_range(0.05, 0.1)
-		var box = BoxMesh.new()
-		box.size = Vector3(s, s, s)
-		var color = Color(1, randf_range(0.7, 0.95), randf_range(0.1, 0.3), 1)
-		var mat = StandardMaterial3D.new()
-		mat.albedo_color = color
-		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		mat.emission_enabled = true
-		mat.emission = color
-		mat.emission_energy_multiplier = 5.0
-		piece.mesh = box
-		piece.material_override = mat
+		piece.mesh = _box
+		piece.scale = Vector3(s, s, s)
+		piece.material_override = _mat_spark
 		add_child(piece)
 		var angle = randf_range(0, 360)
 		var dir = Vector3(cos(deg_to_rad(angle)), randf_range(0.2, 1.2), sin(deg_to_rad(angle))).normalized()
-		var dist = randf_range(2.0, 5.0)
+		var dist = randf_range(1.5, 4.0)
 		var tween = piece.create_tween()
-		tween.tween_property(piece, "position", dir * dist, 0.5).set_trans(Tween.TRANS_LINEAR)
-		tween.parallel().tween_property(mat, "emission", Color(0, 0, 0, 0), 0.5)
-		tween.parallel().tween_property(mat, "albedo_color", Color(0, 0, 0, 0), 0.5)
-		tween.tween_callback(piece.queue_free)
+		tween.tween_property(piece, "position", dir * dist, 0.45).set_trans(Tween.TRANS_LINEAR)
+		tween.parallel().tween_property(piece, "scale", Vector3.ZERO, 0.45)
 
-	var light = OmniLight3D.new()
-	light.light_color = Color(1, 0.5, 0, 1)
-	light.light_energy = 6.0
-	light.omni_range = 10.0
-	add_child(light)
-	var tween = create_tween()
-	tween.tween_property(light, "light_energy", 0.0, 0.6)
-	tween.tween_callback(queue_free)
+	var timer = get_tree().create_timer(0.6)
+	timer.timeout.connect(queue_free)

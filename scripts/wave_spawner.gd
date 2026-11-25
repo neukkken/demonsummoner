@@ -130,15 +130,19 @@ func _spawn_enemy() -> void:
 		get_tree().root.add_child(enemy)
 		if not enemy.is_in_group("enemies"):
 			enemy.add_to_group("enemies")
-		var angle := randf_range(0.0, TAU)
-		var edge_dist := 55.0
-		var is_mage := idx == 1 and _elapsed >= 120.0
-		var dist := randf_range(spawn_radius_min, edge_dist) if is_mage else randf_range(spawn_radius_min, spawn_radius_max)
-		var offset := Vector3(cos(angle), 0.0, sin(angle)) * dist
-		var spawn_pos := _player.global_position + offset
-		spawn_pos.x = clampf(spawn_pos.x, spawn_bounds_min.x, spawn_bounds_max.x)
-		spawn_pos.z = clampf(spawn_pos.z, spawn_bounds_min.z, spawn_bounds_max.z)
-		spawn_pos.y = DatosJuego.get_height(spawn_pos.x, spawn_pos.z) + 1.0
+		var spawn_pos: Vector3
+		if DatosJuego.current_dungeon and DatosJuego.current_dungeon.has_method("get_random_spawn_point"):
+			spawn_pos = DatosJuego.current_dungeon.get_random_spawn_point(_player.global_position, spawn_radius_min, spawn_radius_max)
+		else:
+			var angle := randf_range(0.0, TAU)
+			var edge_dist := 55.0
+			var is_mage := idx == 1 and _elapsed >= 120.0
+			var dist := randf_range(spawn_radius_min, edge_dist) if is_mage else randf_range(spawn_radius_min, spawn_radius_max)
+			var offset := Vector3(cos(angle), 0.0, sin(angle)) * dist
+			spawn_pos = _player.global_position + offset
+			spawn_pos.x = clampf(spawn_pos.x, spawn_bounds_min.x, spawn_bounds_max.x)
+			spawn_pos.z = clampf(spawn_pos.z, spawn_bounds_min.z, spawn_bounds_max.z)
+			spawn_pos.y = DatosJuego.get_height(spawn_pos.x, spawn_pos.z) + 1.0
 		enemy.global_position = spawn_pos
 		if enemy.has_method("init_player"):
 			enemy.init_player(_player)
